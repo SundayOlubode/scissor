@@ -5,12 +5,14 @@ import rateLimiter from './utils/rateLimiter'
 import urlRouter from './routers/urlRouter'
 import globalErrorHandler from './controllers/errorController'
 import appError from './utils/appError'
+import db from './models/db'
 
 const app = express()
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 
+db.init()
 app.use(httpLogger)
 app.use(rateLimiter)
 

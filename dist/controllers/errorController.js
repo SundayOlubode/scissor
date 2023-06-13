@@ -48,7 +48,7 @@ const sendErrorProd = (err, res) => {
         });
     }
 };
-exports.default = (err, req, res, next) => {
+const errorHandler = (err, req, res, next) => {
     err.statusCode = err.statusCode || 500;
     err.status = err.status || "error";
     if (process.env.NODE_ENV === "development") {
@@ -75,3 +75,4 @@ exports.default = (err, req, res, next) => {
         message: "Something went wrong",
     });
 };
+exports.default = errorHandler;
