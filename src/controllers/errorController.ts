@@ -63,7 +63,7 @@ const sendErrorProd: SendError = (err: CustomError, res: Response) => {
         console.error("ERROR 💣", err);
         return res.status(500).json({
             status: "error",
-            message: "Something went very wrong",
+            message: "Something went very wrong. Please try again",
         });
     }
 };

@@ -1,40 +1,43 @@
-import { Document, Schema, model } from 'mongoose';
+import { Schema, model, Model } from 'mongoose';
 
-interface URL extends Document {
+export interface IUser {
     longUrl: string;
     shortUrl: string;
-    createdAt: string;
-    expiresAt: string;
+    createdAt: number;
+    expiresAt: number;
     userId?: string;
-    count: number;
+    count?: number;
+    isCustom?: boolean
 }
 
-const urlSchema = new Schema<URL>({
+const urlSchema = new Schema<IUser, Model<IUser>, IUser>({
     longUrl: {
-        type: String, 
+        type: String,
         required: true
     },
     shortUrl: {
-        type: String, 
+        type: String,
         required: true
     },
     createdAt: {
-        type: String, 
+        type: Number,
         required: true
     },
     expiresAt: {
-        type: String, 
+        type: Number,
         required: true
     },
     userId: {
         type: String
     },
+    isCustom: {
+        type: Boolean,
+        default: false
+    },
     count: {
-        type: Number, 
-        required: true,
+        type: Number,
         default: 0
     },
 });
 
-const Urls = model<URL>('url', urlSchema);
-export default Urls;
+export const Urls = model<IUser>('url', urlSchema);

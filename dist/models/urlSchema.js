@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Urls = void 0;
 const mongoose_1 = require("mongoose");
 const urlSchema = new mongoose_1.Schema({
     longUrl: {
@@ -11,21 +12,23 @@ const urlSchema = new mongoose_1.Schema({
         required: true
     },
     createdAt: {
-        type: String,
+        type: Number,
         required: true
     },
     expiresAt: {
-        type: String,
+        type: Number,
         required: true
     },
     userId: {
         type: String
     },
+    isCustom: {
+        type: Boolean,
+        default: false
+    },
     count: {
         type: Number,
-        required: true,
         default: 0
     },
 });
-const Urls = (0, mongoose_1.model)('url', urlSchema);
-exports.default = Urls;
+exports.Urls = (0, mongoose_1.model)('url', urlSchema);

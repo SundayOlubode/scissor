@@ -1,15 +1,25 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const base62Hash = (url) => {
-    let hashedStr = '';
-    let urlLen = url.length;
-    let str = '0123456789abcdefghujklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    while (urlLen > 0) {
-        hashedStr += str[urlLen % 62];
-        urlLen /= 62;
+function convertToBase62(url) {
+    const characterSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const base = 62;
+    const length = 7;
+    let numericValue = 0;
+    // Convert string to numeric value
+    for (let i = 0; i < url.length; i++) {
+        numericValue += url.charCodeAt(i);
     }
-    console.log(hashedStr);
-    return hashedStr;
-};
-base62Hash('www.dhhhhfhfhfhfhfhfhfhfh.com/jkkdkdkdkkkkffffffffffejfjeeeeeejhsdddddddddffffff');
-exports.default = base62Hash;
+    // Perform base62 conversion
+    let base62Representation = '';
+    while (numericValue > 0) {
+        const remainder = numericValue % base;
+        base62Representation = characterSet.charAt(remainder) + base62Representation;
+        numericValue = Math.floor(numericValue / base);
+    }
+    // Pad with leading zeros if necessary
+    while (base62Representation.length < length) {
+        base62Representation = '0' + base62Representation;
+    }
+    return base62Representation;
+}
+exports.default = convertToBase62;
