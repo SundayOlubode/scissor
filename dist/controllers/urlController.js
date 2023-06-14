@@ -17,6 +17,7 @@ const appError_1 = __importDefault(require("../utils/appError"));
 const urlSchema_1 = require("../models/urlSchema");
 const url_1 = require("url");
 const base62_1 = __importDefault(require("../utils/base62"));
+const redis_1 = __importDefault(require("../configs/redis"));
 /**
  * Create Short Url
  * @param req
@@ -84,6 +85,11 @@ const createUrl = (req, res, next) => __awaiter(void 0, void 0, void 0, function
     }
 });
 exports.createUrl = createUrl;
+/**
+ * Verify | Valid Url
+ * @param inputUrl
+ * @returns Boolean
+ */
 function verifyUrl(inputUrl) {
     try {
         // Parse the input URL
@@ -102,6 +108,12 @@ function verifyUrl(inputUrl) {
         return false;
     }
 }
+/**
+ * Creates Custom Url
+ * @param customUrl
+ * @param req
+ * @returns String
+ */
 function createCustomUrl(customUrl, req) {
     return __awaiter(this, void 0, void 0, function* () {
         const oldCustomUrl = yield urlSchema_1.Urls.findOne({ shortUrl: customUrl });
@@ -115,21 +127,38 @@ function createCustomUrl(customUrl, req) {
         return shortUrl;
     });
 }
+/**
+ * Sends Response to User
+ * @param longUrl
+ * @param shortUrl
+ * @param req
+ * @param res
+ * @param isCustom
+ * @returns Response
+ */
 function returnCreateResponse(longUrl, shortUrl, req, res, isCustom = false) {
     return __awaiter(this, void 0, void 0, function* () {
-        // SAVE LONG AND SHORT URL IN DB
-        const newUrl = yield urlSchema_1.Urls.create({
-            longUrl,
-            shortUrl,
-            createdAt: Date.now(),
-            expiresAt: Date.now() + (3600 * 24 * 30),
-            userId: req.user,
-            isCustom
-        });
-        // SAVE IN CACHE LAYER
-        return res.status(201).json({
-            status: 'success',
-            data: newUrl
-        });
+        try {
+            // SAVE LONG AND SHORT URL IN DB
+            const newUrl = yield urlSchema_1.Urls.create({
+                longUrl,
+                shortUrl,
+                createdAt: Date.now(),
+                expiresAt: Date.now() + (3600 * 24 * 30),
+                userId: req.user,
+                isCustom
+            });
+            // SAVE IN CACHE LAYER
+            const cacheKey = longUrl;
+            const cacheValue = shortUrl;
+            yield redis_1.default.set(cacheKey, cacheValue);
+            return res.status(201).json({
+                status: 'success',
+                data: newUrl
+            });
+        }
+        catch (error) {
+            throw new appError_1.default(error.message, error.statusCode);
+        }
     });
 }

@@ -4,10 +4,13 @@ import { Urls, IUser } from "../models/urlSchema"
 import Users from "../models/userSchema"
 import { URL } from 'url'
 import convertToBase62 from "../utils/base62"
+import Cache from "../configs/redis"
+
 
 interface ReqBody extends Request {
     user: string
 }
+
 
 /**
  * Create Short Url
@@ -88,7 +91,11 @@ export const createUrl = async (req: ReqBody, res: Response, next: NextFunction)
     }
 }
 
-
+/**
+ * Verify | Valid Url
+ * @param inputUrl 
+ * @returns Boolean
+ */
 function verifyUrl(inputUrl: string): boolean {
     try {
         // Parse the input URL
@@ -110,6 +117,12 @@ function verifyUrl(inputUrl: string): boolean {
     }
 }
 
+/**
+ * Creates Custom Url
+ * @param customUrl 
+ * @param req 
+ * @returns String
+ */
 async function createCustomUrl(customUrl: string, req: ReqBody):
     Promise<string | never> {
     const oldCustomUrl: IUser | null = await Urls.findOne({ shortUrl: customUrl })
@@ -125,24 +138,40 @@ async function createCustomUrl(customUrl: string, req: ReqBody):
     return shortUrl;
 }
 
+/**
+ * Sends Response to User
+ * @param longUrl 
+ * @param shortUrl 
+ * @param req 
+ * @param res 
+ * @param isCustom 
+ * @returns Response
+ */
 async function returnCreateResponse(longUrl: string, shortUrl: string, req: ReqBody, res: Response, isCustom: boolean = false):
     Promise<Response<any, Record<string, any>> | Error | undefined> {
+    try {
+        // SAVE LONG AND SHORT URL IN DB
+        const newUrl: IUser = await Urls.create({
+            longUrl,
+            shortUrl,
+            createdAt: Date.now(),
+            expiresAt: Date.now() + (3600 * 24 * 30), //30days validity
+            userId: req.user,
+            isCustom
+        })
 
-    // SAVE LONG AND SHORT URL IN DB
-    const newUrl: IUser = await Urls.create({
-        longUrl,
-        shortUrl,
-        createdAt: Date.now(),
-        expiresAt: Date.now() + (3600 * 24 * 30), //30days validity
-        userId: req.user,
-        isCustom
-    })
-    
-    // SAVE IN CACHE LAYER
+        // SAVE IN CACHE LAYER
 
-    return res.status(201).json({
-        status: 'success',
-        data: newUrl
-    })
+        const cacheKey = longUrl
+        const cacheValue = shortUrl
 
+        await Cache.set(cacheKey, cacheValue)
+
+        return res.status(201).json({
+            status: 'success',
+            data: newUrl
+        })
+    } catch (error: any) {
+        throw new appError(error.message, error.statusCode)
+    }
 }
