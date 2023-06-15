@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Users = void 0;
 const mongoose_1 = require("mongoose");
 const userSchema = new mongoose_1.Schema({
     email: {
@@ -14,6 +15,9 @@ const userSchema = new mongoose_1.Schema({
         type: String,
         required: true
     },
+    password: {
+        type: String,
+    },
     createdAt: {
         type: String,
         required: true
@@ -21,5 +25,4 @@ const userSchema = new mongoose_1.Schema({
     passwordToken: String,
     passwordResetExpiry: Date,
 });
-const Users = (0, mongoose_1.model)('User', userSchema);
-exports.default = Users;
+exports.Users = (0, mongoose_1.model)('User', userSchema);

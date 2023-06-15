@@ -20,9 +20,6 @@ const base62_1 = __importDefault(require("../utils/base62"));
 const redis_1 = __importDefault(require("../configs/redis"));
 /**
  * Create Short Url
- * @param req
- * @param res
- * @param next
  * @returns Response Body
  */
 const createUrl = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -50,7 +47,7 @@ const createUrl = (req, res, next) => __awaiter(void 0, void 0, void 0, function
                     createdAt: Date.now(),
                     expiresAt: Date.now() + (3600 * 24 * 30),
                     // ISSUE: HOW TO INCREMENT WHEN DURING CLICKS 
-                    //TAKING FOR THE FACT THAT SHORTURL MAY BE MORE THAN ONE
+                    // TAKING FOR THE FACT THAT SHORTURL MAY BE MORE THAN ONE
                 };
                 const newUrl = yield urlSchema_1.Urls.create(newUrlPayload);
                 return res.status(200).json({
@@ -129,11 +126,6 @@ function createCustomUrl(customUrl, req) {
 }
 /**
  * Sends Response to User
- * @param longUrl
- * @param shortUrl
- * @param req
- * @param res
- * @param isCustom
  * @returns Response
  */
 function returnCreateResponse(longUrl, shortUrl, req, res, isCustom = false) {
