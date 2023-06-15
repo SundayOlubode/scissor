@@ -16,6 +16,7 @@ interface CustomError extends Error {
     _message: string
 }
 
+
 type SendError = (err: CustomError, res: Response) => Response
 
 const handleCastErrorDB = (err: CustomError): CustomError => {

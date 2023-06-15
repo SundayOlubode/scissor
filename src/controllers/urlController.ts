@@ -1,25 +1,21 @@
 import { Response, Request, NextFunction } from "express"
 import appError from "../utils/appError"
-import { Urls, IUser } from "../models/urlSchema"
-import Users from "../models/userSchema"
+import { Urls, IUrl } from "../models/urlSchema"
+import { Users } from "../models/userSchema"
 import { URL } from 'url'
 import convertToBase62 from "../utils/base62"
 import Cache from "../configs/redis"
 
 
-interface ReqBody extends Request {
+export interface IReqBody extends Request {
     user: string
 }
 
-
 /**
  * Create Short Url
- * @param req 
- * @param res 
- * @param next 
  * @returns Response Body
  */
-export const createUrl = async (req: ReqBody, res: Response, next: NextFunction):
+export const createUrl = async (req: IReqBody, res: Response, next: NextFunction):
     Promise<Response<any, Record<string, any>> | Error | undefined> => {
     try {
         // GET LONGURL
@@ -35,7 +31,7 @@ export const createUrl = async (req: ReqBody, res: Response, next: NextFunction)
         // }
 
         // CHECK DB TO SEE IF LONGURL EXISTS
-        const oldLongUrl: IUser | null = await Urls.findOne({ longUrl })
+        const oldLongUrl: IUrl | null = await Urls.findOne({ longUrl })
 
         if (oldLongUrl !== null) {
 
@@ -43,17 +39,17 @@ export const createUrl = async (req: ReqBody, res: Response, next: NextFunction)
 
             // IF IS NOT CUSTOM, AND USER NOT OWNER RETURN NEW SAME URL FOR USER 
             if (!isCustom && req.user !== userId) {
-                const newUrlPayload: IUser = {
+                const newUrlPayload: IUrl = {
                     userId: req.user,
                     longUrl,
                     shortUrl,
                     createdAt: Date.now(),
                     expiresAt: Date.now() + (3600 * 24 * 30),
                     // ISSUE: HOW TO INCREMENT WHEN DURING CLICKS 
-                    //TAKING FOR THE FACT THAT SHORTURL MAY BE MORE THAN ONE
+                    // TAKING FOR THE FACT THAT SHORTURL MAY BE MORE THAN ONE
                 }
 
-                const newUrl: IUser = await Urls.create(newUrlPayload)
+                const newUrl: IUrl = await Urls.create(newUrlPayload)
 
                 return res.status(200).json({
                     status: 'success',
@@ -123,9 +119,9 @@ function verifyUrl(inputUrl: string): boolean {
  * @param req 
  * @returns String
  */
-async function createCustomUrl(customUrl: string, req: ReqBody):
+async function createCustomUrl(customUrl: string, req: IReqBody):
     Promise<string | never> {
-    const oldCustomUrl: IUser | null = await Urls.findOne({ shortUrl: customUrl })
+    const oldCustomUrl: IUrl | null = await Urls.findOne({ shortUrl: customUrl })
 
     // CHECK IF CUSTOM NAME EXISTS
     if (oldCustomUrl) {
@@ -140,18 +136,13 @@ async function createCustomUrl(customUrl: string, req: ReqBody):
 
 /**
  * Sends Response to User
- * @param longUrl 
- * @param shortUrl 
- * @param req 
- * @param res 
- * @param isCustom 
  * @returns Response
  */
-async function returnCreateResponse(longUrl: string, shortUrl: string, req: ReqBody, res: Response, isCustom: boolean = false):
+async function returnCreateResponse(longUrl: string, shortUrl: string, req: IReqBody, res: Response, isCustom: boolean = false):
     Promise<Response<any, Record<string, any>> | Error | undefined> {
     try {
         // SAVE LONG AND SHORT URL IN DB
-        const newUrl: IUser = await Urls.create({
+        const newUrl: IUrl = await Urls.create({
             longUrl,
             shortUrl,
             createdAt: Date.now(),
@@ -161,7 +152,6 @@ async function returnCreateResponse(longUrl: string, shortUrl: string, req: ReqB
         })
 
         // SAVE IN CACHE LAYER
-
         const cacheKey = longUrl
         const cacheValue = shortUrl
 

@@ -1,6 +1,6 @@
 import { Schema, model, Model } from 'mongoose';
 
-export interface IUser {
+export interface IUrl {
     longUrl: string;
     shortUrl: string;
     createdAt: number;
@@ -10,7 +10,7 @@ export interface IUser {
     isCustom?: boolean
 }
 
-const urlSchema = new Schema<IUser, Model<IUser>, IUser>({
+const urlSchema = new Schema<IUrl, Model<IUrl>, IUrl>({
     longUrl: {
         type: String,
         required: true
@@ -40,4 +40,4 @@ const urlSchema = new Schema<IUser, Model<IUser>, IUser>({
     },
 });
 
-export const Urls = model<IUser>('url', urlSchema);
+export const Urls = model<IUrl>('url', urlSchema);

@@ -1,15 +1,17 @@
 import { Document, Schema, model } from 'mongoose';
 
-interface USER extends Document {
+export interface IUser extends Document {
     email: string;
     firstname: string;
     lastname: string;
     createdAt: string;
-    passwordResetExpiry: string;
-    passwordToken: string;
+    password?: string;
+    passwordResetExpiry: number | null;
+    passwordToken: string | null;
+    isValidPassword(password: string): boolean
 }
 
-const userSchema = new Schema<USER>({
+const userSchema = new Schema<IUser>({
     email: {
         type: String,
         required: true
@@ -22,6 +24,9 @@ const userSchema = new Schema<USER>({
         type: String,
         required: true
     },
+    password: {
+        type: String,
+    },
     createdAt: {
         type: String,
         required: true
@@ -30,5 +35,4 @@ const userSchema = new Schema<USER>({
     passwordResetExpiry: Date,
 });
 
-const Users = model<USER>('User', userSchema);
-export default Users;
+export const Users = model<IUser>('User', userSchema);
