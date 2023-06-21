@@ -1,19 +1,19 @@
-import { IReqBody } from "../controllers/urlController";
-import { Request, Response, NextFunction } from 'express'
-import jwt from 'jsonwebtoken';
+import { Request, Response, NextFunction, RequestHandler } from 'express'
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import appError from "../utils/appError";
-import { promisify } from "util";
 import dotenv from 'dotenv'
 dotenv.config()
 import { Users } from "../models/userSchema";
+import logger from '../utils/logger';
 
 /**
  * Check User Authorization
  * @returns void
  */
-const authorize = async (req: IReqBody, res: Response, next: NextFunction): Promise<unknown> => {
+const authorize = async (req: Request, res: Response, next: NextFunction): Promise<unknown> => {
+
     try {
-        /** testing authorization**/
+
         let token;
         if (process.env.NODE_ENV === "development") {
             const authHeader = req.headers.authorization;
@@ -32,10 +32,10 @@ const authorize = async (req: IReqBody, res: Response, next: NextFunction): Prom
         }
 
         // verify token
-        const verifiedToken: any = jwt.verify(
+        const verifiedToken: JwtPayload = jwt.verify(
             token,
             process.env.JWT_SECRET as string
-        );
+        ) as JwtPayload;
 
         //Check if Users exists
         const currentUser = await Users.findById(verifiedToken.user_id)
@@ -47,7 +47,9 @@ const authorize = async (req: IReqBody, res: Response, next: NextFunction): Prom
         req.user = currentUser._id;
         next();
     } catch (error: any) {
-        return next(new appError(error.message, error.statusCode))
+        logger.error(error)
+        next(new appError(error.message, error.statusCode));
+        return;
     }
 };
 

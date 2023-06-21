@@ -17,13 +17,13 @@ const appError_1 = __importDefault(require("../utils/appError"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const userSchema_1 = require("../models/userSchema");
+const logger_1 = __importDefault(require("../utils/logger"));
 /**
  * Check User Authorization
  * @returns void
  */
 const authorize = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        /** testing authorization**/
         let token;
         if (process.env.NODE_ENV === "development") {
             const authHeader = req.headers.authorization;
@@ -50,7 +50,9 @@ const authorize = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         next();
     }
     catch (error) {
-        return next(new appError_1.default(error.message, error.statusCode));
+        logger_1.default.error(error);
+        next(new appError_1.default(error.message, error.statusCode));
+        return;
     }
 });
 exports.default = authorize;

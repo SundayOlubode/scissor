@@ -1,21 +1,18 @@
-import { Response, Request, NextFunction } from "express"
+import { Response, Request, NextFunction, RequestHandler } from "express"
 import appError from "../utils/appError"
 import { Urls, IUrl } from "../models/urlSchema"
-import { Users } from "../models/userSchema"
+import { Users, IUser } from "../models/userSchema"
 import { URL } from 'url'
 import convertToBase62 from "../utils/base62"
 import Cache from "../configs/redis"
 
 
-export interface IReqBody extends Request {
-    user: string
-}
 
 /**
  * Create Short Url
- * @returns Response Body
+ * @returns Response
  */
-export const createUrl = async (req: IReqBody, res: Response, next: NextFunction):
+export const createUrl = async (req: Request, res: Response, next: NextFunction):
     Promise<Response<any, Record<string, any>> | Error | undefined> => {
     try {
         // GET LONGURL
@@ -26,39 +23,50 @@ export const createUrl = async (req: IReqBody, res: Response, next: NextFunction
 
         // VERIFY URL
         const isValidUrl = verifyUrl(longUrl)
-        // if (!isValidUrl) {
-        //     throw new appError('Please provide a valid Url', 400)
-        // }
+        if (!isValidUrl) {
+            throw new appError('Please enter a valid Url', 400)
+        }
 
         // CHECK DB TO SEE IF LONGURL EXISTS
         const oldLongUrl: IUrl | null = await Urls.findOne({ longUrl })
 
-        if (oldLongUrl !== null) {
+        if (oldLongUrl) {
 
             const { shortUrl, userId, isCustom } = oldLongUrl
+            console.log('ISCUSTOM', isCustom);
 
-            // IF IS NOT CUSTOM, AND USER NOT OWNER RETURN NEW SAME URL FOR USER 
-            if (!isCustom && req.user !== userId) {
-                const newUrlPayload: IUrl = {
-                    userId: req.user,
-                    longUrl,
-                    shortUrl,
-                    createdAt: Date.now(),
-                    expiresAt: Date.now() + (3600 * 24 * 30),
-                    // ISSUE: HOW TO INCREMENT WHEN DURING CLICKS 
-                    // TAKING FOR THE FACT THAT SHORTURL MAY BE MORE THAN ONE
+            const oldUrlNotCustom = isCustom
+
+            let newUrl: IUrl
+            // IF EXISTING URL IS NOT CUSTOM, AND USER NOT FIRST CREATOR, RETURN SAME URL FOR USER
+            // WHY? CAN'T GENERATE DIFFERENT SHORTURL FOR ONE LONGURL - USER SHARES ANALYTICS
+            if (req.user !== userId) {
+                if (!oldUrlNotCustom) {
+                    console.log('USER OLDURL');
+
+                    const newUrlPayload = {
+                        userId: req.user,
+                        longUrl,
+                        shortUrl,
+                        createdAt: Date.now(),
+                        expiresAt: Date.now() + (3600 * 24 * 30),
+                        // ISSUE: HOW TO INCREMENT WHEN DURING CLICKS 
+                        // TAKING FOR THE FACT THAT SHORTURL MAY BE MORE THAN ONE
+                        // TODO: READ UP MANY-TO-MANY RELATIONSSHIP
+                    }
+
+                    newUrl = await Urls.create(newUrlPayload)
+
+                    return res.status(201).json({
+                        status: 'success',
+                        data: newUrl
+                    })
                 }
-
-                const newUrl: IUrl = await Urls.create(newUrlPayload)
-
-                return res.status(200).json({
-                    status: 'success',
-                    data: newUrl
-                })
-                // throw new appError('Url already created by you! Please check Url history!', 403)
             }
 
-            const newUrl = oldLongUrl
+            // IF USER IS THE CREATOR
+            newUrl = oldLongUrl
+
             // RETURN SHORTURL IF LONG URL EXISTS
             return res.status(200).json({
                 status: 'success',
@@ -66,21 +74,28 @@ export const createUrl = async (req: IReqBody, res: Response, next: NextFunction
             })
         }
 
-        var shortUrl: string;
+        let shortUrl: string;
 
         // CHECK IF IS CUSTOM URL
-        if (isCustom) {
+        if (isCustom === true) {
+            console.log('URL IS CUSTOM');
             shortUrl = await createCustomUrl(customUrl, req)!
-            returnCreateResponse(longUrl, shortUrl, req, res, true)
+            return returnCreateResponse(longUrl, shortUrl, req, res, true)
         }
 
-        // OTHERWISE:
         // CREATE SHORTURL ENCODING
-        const enconding = convertToBase62(longUrl)
+        let enconding = ''
+        enconding = convertToBase62(longUrl)
+
+        let oldShortUrl: IUrl | null = await Urls.findOne({ shortUrl: enconding })
+        while (oldShortUrl !== null) {
+            enconding = convertToBase62(longUrl)
+            oldShortUrl = await Urls.findOne({ shortUrl: enconding })
+        }
 
         // IF SHORT URL ALREADY EXISTS, CREATE NEW SHORTURL ENCODING
         shortUrl = `${req.protocol}://${req.get('host')}/${enconding}`
-        returnCreateResponse(longUrl, shortUrl, req, res)
+        return returnCreateResponse(longUrl, shortUrl, req, res)
     } catch (error: any) {
         next(new appError(error.message, error.statusCode));
         return;
@@ -88,7 +103,7 @@ export const createUrl = async (req: IReqBody, res: Response, next: NextFunction
 }
 
 /**
- * Verify | Valid Url
+ * Verify Url
  * @param inputUrl 
  * @returns Boolean
  */
@@ -119,8 +134,13 @@ function verifyUrl(inputUrl: string): boolean {
  * @param req 
  * @returns String
  */
-async function createCustomUrl(customUrl: string, req: IReqBody):
+async function createCustomUrl(customUrl: string, req: Request):
     Promise<string | never> {
+
+    if (!customUrl) {
+        throw new appError('Please provide a custom link', 400)
+    }
+
     const oldCustomUrl: IUrl | null = await Urls.findOne({ shortUrl: customUrl })
 
     // CHECK IF CUSTOM NAME EXISTS
@@ -138,7 +158,7 @@ async function createCustomUrl(customUrl: string, req: IReqBody):
  * Sends Response to User
  * @returns Response
  */
-async function returnCreateResponse(longUrl: string, shortUrl: string, req: IReqBody, res: Response, isCustom: boolean = false):
+async function returnCreateResponse(longUrl: string, shortUrl: string, req: Request, res: Response, isCustom: boolean = false):
     Promise<Response<any, Record<string, any>> | Error | undefined> {
     try {
         // SAVE LONG AND SHORT URL IN DB

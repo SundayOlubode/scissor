@@ -1,10 +1,9 @@
 import { NextFunction, Request, Response } from "express";
-
 import logger from "../utils/logger";
-import AppError from "../utils/appError";
+import appError from "../utils/appError";
 
 
-interface CustomError extends Error {
+interface IError extends Error {
     status: string,
     statusCode: number,
     path: string,
@@ -17,32 +16,32 @@ interface CustomError extends Error {
 }
 
 
-type SendError = (err: CustomError, res: Response) => Response
+type SendError = (err: IError, res: Response) => Response
 
-const handleCastErrorDB = (err: CustomError): CustomError => {
+const handleCastErrorDB = (err: IError): IError => {
     const message = `Invalid ${err.path}: ${err.value}`;
-    return new AppError(message, 400) as CustomError;
+    return new appError(message, 400) as IError;
 };
-const handleDuplicateKeyDB = (err: CustomError): CustomError => {
+const handleDuplicateKeyDB = (err: IError): IError => {
     const value = err.keyValue.name;
     logger.info(value);
     const message = `Duplicate field value: '${value}' Please use another value`;
-    return new AppError(message, 400) as CustomError;
+    return new appError(message, 400) as IError;
 };
-const handleValidationErrorDB = (err: CustomError): CustomError => {
+const handleValidationErrorDB = (err: IError): IError => {
     const errors = Object.values(err.errors).map((el: any) => el.message);
     const message = `Invalid field data ${errors.join(". ")} Critical Error`;
-    return new AppError(message, 400) as CustomError;
+    return new appError(message, 400) as IError;
 };
 
-const handleJWTError = (err: CustomError): CustomError =>
-    new AppError("Invalid token. Please login again", 401) as CustomError;
+const handleJWTError = (err: IError): IError =>
+    new appError("Invalid token. Please login again", 401) as IError;
 
-const handleJWTExpiredError = (err: CustomError): CustomError =>
-    new AppError("Your token is expired, Please login again", 401) as CustomError;
+const handleJWTExpiredError = (err: IError): IError =>
+    new appError("Your token is expired, Please login again", 401) as IError;
 
 
-const sendErrorDev: SendError = (err: CustomError, res: Response) => {
+const sendErrorDev: SendError = (err: IError, res: Response) => {
     logger.error(err);
     return res.status(err.statusCode).json({
         status: err.status,
@@ -52,7 +51,7 @@ const sendErrorDev: SendError = (err: CustomError, res: Response) => {
     });
 };
 
-const sendErrorProd: SendError = (err: CustomError, res: Response) => {
+const sendErrorProd: SendError = (err: IError, res: Response) => {
     //OPerational Error that we trust, send to client
     if (err.isOperational) {
         return res.status(err.statusCode).json({
@@ -69,7 +68,7 @@ const sendErrorProd: SendError = (err: CustomError, res: Response) => {
     }
 };
 
-const errorHandler = (err: CustomError, req: Request, res: Response, next: NextFunction): Response => {
+const errorHandler = (err: IError, req: Request, res: Response, next: NextFunction): Response => {
     err.statusCode = err.statusCode || 500;
     err.status = err.status || "error";
 

@@ -1,4 +1,4 @@
-class AppError extends Error {
+class appError extends Error {
 
     statusCode: number;
     isOperational: boolean;
@@ -10,8 +10,8 @@ class AppError extends Error {
         this.isOperational = true
 
         Error.captureStackTrace(this, this.constructor)
-        Object.setPrototypeOf(this, AppError)
+        Object.setPrototypeOf(this, appError)
     }
 }
 
-export default AppError
+export default appError

@@ -1,6 +1,5 @@
 import rateLimiter from 'express-rate-limit'
 import { Request } from 'express'
-import { IReqBody } from '../controllers/urlController'
 
 
 /**
@@ -14,9 +13,8 @@ const limiter = rateLimiter({
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
     message: 'Too many requests!',
     skipFailedRequests: true,
-    keyGenerator: (req: Request, res) => { // USER OR IP
-        const typedReq = req as IReqBody
-        return typedReq.user || req.ip
+    keyGenerator: (req: Request, res) => { // USER ID OR IP
+        return req.user || req.ip
     }
 })
 

@@ -16,8 +16,7 @@ const limiter = (0, express_rate_limit_1.default)({
     message: 'Too many requests!',
     skipFailedRequests: true,
     keyGenerator: (req, res) => {
-        const typedReq = req;
-        return typedReq.user || req.ip;
+        return req.user || req.ip;
     }
 });
 exports.default = limiter;

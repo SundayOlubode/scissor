@@ -1,17 +1,27 @@
-import appError from "../utils/appError"
-import { Users, IUser } from "../models/userSchema"
-const { createSendToken } = require('../utils/createSendToken')
 import { createPasswdResetToken } from "../utils/tokens"
-const { EmailToUsers } = require('../utils/emails')
-require('dotenv').config()
-const crypto = require('crypto')
+import createSendToken from "../utils/createSendToken"
+import { Users, IUser } from "../models/userSchema"
 import { Request, Response, NextFunction } from "express"
-import { IReqBody } from "./urlController"
+import appError from "../utils/appError"
+import Email from "../utils/emails"
+import crypto from 'crypto'
+require('dotenv').config()
 
+interface IReqBody {
+    email: string;
+    password?: string;
+    firstname?: string;
+    lastname?: string;
+}
 
-export const signup = async (req: IReqBody, res: Response, next: NextFunction) => {
+/**
+ * SIGNUP
+ * @returns Response
+ */
+export const signup = async (req: Request, res: Response, next: NextFunction):
+    Promise<Response<any, Record<string, any>> | Error | undefined> => {
 
-    const { email, password, firstname, lastname, role, adminCode } = req.body
+        const { email, password, firstname, lastname }: IReqBody = req.body
 
     try {
 
@@ -19,31 +29,33 @@ export const signup = async (req: IReqBody, res: Response, next: NextFunction) =
             throw new appError('Please provide full sign up details', 401)
         }
 
-        const oldUser = await Users.findOne({ email })
+        const oldUser: IUser | null = await Users.findOne({ email })
         if (oldUser) throw new appError("User already exists. Please login", 409);
 
-        // VERIFY ADMIN REGISTRATION
-        if (role) {
-            // CHECK CODE
-            if (`${adminCode}` !== process.env.ADMIN_CODE) throw (new appError('Incorrect Admin Code!', 400))
+        const user: IUser | null = await Users.create(req.body)
+
+        if (process.env.NODE_ENV === 'production') {
+            // SEND WELCOME MAIL
+            let url = process.env.WELCOMEURL!
+            await new Email(user, url).sendWelcome()
         }
-
-        const user = await Users.create(req.body)
-
-        // SEND WELCOME MAIL
-        let url = process.env.WELCOMEURL
-        // await new EmailToUsers(user, url).sendWelcome()
 
         createSendToken(user, 201, res)
 
     } catch (error: any) {
-        return next(new appError(error.message, error.statusCode))
+        next(new appError(error.message, error.statusCode));
+        return;
     }
 }
 
-export const login = async (req: IReqBody, res: Response, next: NextFunction) => {
+/**
+ * LOGIN
+ * @returns Response
+ */
+export const login = async (req: Request, res: Response, next: NextFunction):
+    Promise<Response<any, Record<string, any>> | Error | undefined> => {
 
-    const { email, password } = req.body
+    const { email, password }: IReqBody = req.body
 
     try {
         if (!(email || password)) {
@@ -51,20 +63,28 @@ export const login = async (req: IReqBody, res: Response, next: NextFunction) =>
         }
 
         const user: IUser | null = await Users.findOne({ email })
+
         // CHECK IF USER EXISTS WITHOUT LEAKING EXTRA INFOS
-        if (!user || !(await user.isValidPassword(password))) {
+        if (!user || !(await user.isValidPassword(password!))) {
             throw new appError('Email or Password incorrect', 401)
         }
 
         createSendToken(user, 201, res)
 
     } catch (error: any) {
-        return next(new appError(error.message, error.statusCode))
+        next(new appError(error.message, error.statusCode));
+        return;
     }
 }
 
-exports.forgotPassword = async (req: IReqBody, res: Response, next: NextFunction) => {
-    const { email } = req.body
+/**
+ * FORGOT PASSWORD
+ * @returns Response
+ */
+export const forgotPassword = async (req: Request, res: Response, next: NextFunction):
+    Promise<Response<any, Record<string, any>> | Error | undefined> => {
+
+    const { email }: IReqBody = req.body
 
     try {
 
@@ -78,29 +98,35 @@ exports.forgotPassword = async (req: IReqBody, res: Response, next: NextFunction
 
         await user.save()
 
-        //SEND MAIL TO USER TO RESET PASSWORD
         const resetUrl = `${req.protocol}://${req.get(
             "host"
-        )}/api/v2/auth/resetpassword/${resetToken}`;
+        )}/api/v1/auth/resetpassword/${resetToken}`;
 
-        //5. SEND EMAIL TO CLIENT
-        await new EmailToUsers(user, resetUrl).sendPasswordReset();
+        if (process.env.NODE_ENV === 'production') {
+            await new Email(user, resetUrl).sendPasswordReset();
+        }
 
-        //6. SEND JSON RESPONSE
+        // SEND RESPONSE
         res.status(200).json({
             status: "success",
             message: `Token sent to mail ${resetUrl}`,
         });
 
     } catch (error: any) {
-        return next(new appError(error.message, error.statusCode))
+        next(new appError(error.message, error.statusCode));
+        return;
     }
 
 }
 
-//RESET PASSWORD
-exports.resetPassword = async (req: IReqBody, res: Response, next: NextFunction) => {
-    //1. CREATE A HASHED TOKEN FROM THE REQ PARAMS
+/**
+ * RESET PASSWORD
+ * @returns Response
+ */
+export const resetPassword = async (req: Request, res: Response, next: NextFunction):
+    Promise<Response<any, Record<string, any>> | Error | undefined> => {
+
+    // CREATE A HASHED TOKEN FROM THE REQ PARAMS
     const hashedToken = crypto
         .createHash("sha256")
         .update(req.params.token)
@@ -118,7 +144,7 @@ exports.resetPassword = async (req: IReqBody, res: Response, next: NextFunction)
         const password = req.body.password;
         const confirmPassword = req.body.confirmPassword;
 
-        if (!(password === confirmPassword)) {
+        if (password !== confirmPassword) {
             throw new appError('Password and ConfirmPassword must be same', 403)
         }
 
@@ -129,13 +155,16 @@ exports.resetPassword = async (req: IReqBody, res: Response, next: NextFunction)
         await user.save();
 
         const url = `${req.protocol}://${req.get("host")}/api/v1/auth/login`;
-        // SEND SUCCESS MAIL TO CLIENT
-        await new EmailToUsers(user, url).sendVerifiedPSWD();
+
+        if (process.env.NODE_ENV === 'production') {
+            await new Email(user, url).sendVerifiedPSWD();
+        }
 
         // LOG IN USER AND SEND JWT
         createSendToken(user, 200, res);
 
     } catch (error: any) {
-        return next(new appError(error.message, error.statusCode))
+        next(new appError(error.message, error.statusCode));
+        return;
     }
 }

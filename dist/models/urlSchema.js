@@ -9,7 +9,7 @@ const urlSchema = new mongoose_1.Schema({
     },
     shortUrl: {
         type: String,
-        required: true
+        required: true,
     },
     createdAt: {
         type: Number,

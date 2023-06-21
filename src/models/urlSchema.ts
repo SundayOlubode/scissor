@@ -1,13 +1,14 @@
-import { Schema, model, Model } from 'mongoose';
+import { Schema, model, Model, Document } from 'mongoose';
 
-export interface IUrl {
+export interface IUrl extends Document{
     longUrl: string;
     shortUrl: string;
     createdAt: number;
     expiresAt: number;
     userId?: string;
     count?: number;
-    isCustom?: boolean
+    isCustom?: boolean;
+    // save?(): void
 }
 
 const urlSchema = new Schema<IUrl, Model<IUrl>, IUrl>({
@@ -17,7 +18,7 @@ const urlSchema = new Schema<IUrl, Model<IUrl>, IUrl>({
     },
     shortUrl: {
         type: String,
-        required: true
+        required: true,
     },
     createdAt: {
         type: Number,

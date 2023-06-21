@@ -1,7 +1,9 @@
-import { Router } from "express";
+import { Router, RequestHandler, IRouter } from "express";
+import { createUrl } from "../controllers/urlController";
+import authorize from "../middlewares/authorize";
 
-const router = Router()
+const router: IRouter = Router()
 
-router.post('/short')
+router.post('/create', authorize, createUrl)
 
 export default router

@@ -20,7 +20,7 @@ const base62_1 = __importDefault(require("../utils/base62"));
 const redis_1 = __importDefault(require("../configs/redis"));
 /**
  * Create Short Url
- * @returns Response Body
+ * @returns Response
  */
 const createUrl = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -31,50 +31,64 @@ const createUrl = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         const shouldHaveQR = req.body.shouldHaveQR;
         // VERIFY URL
         const isValidUrl = verifyUrl(longUrl);
-        // if (!isValidUrl) {
-        //     throw new appError('Please provide a valid Url', 400)
-        // }
+        if (!isValidUrl) {
+            throw new appError_1.default('Please enter a valid Url', 400);
+        }
         // CHECK DB TO SEE IF LONGURL EXISTS
         const oldLongUrl = yield urlSchema_1.Urls.findOne({ longUrl });
-        if (oldLongUrl !== null) {
+        if (oldLongUrl) {
             const { shortUrl, userId, isCustom } = oldLongUrl;
-            // IF IS NOT CUSTOM, AND USER NOT OWNER RETURN NEW SAME URL FOR USER 
-            if (!isCustom && req.user !== userId) {
-                const newUrlPayload = {
-                    userId: req.user,
-                    longUrl,
-                    shortUrl,
-                    createdAt: Date.now(),
-                    expiresAt: Date.now() + (3600 * 24 * 30),
-                    // ISSUE: HOW TO INCREMENT WHEN DURING CLICKS 
-                    // TAKING FOR THE FACT THAT SHORTURL MAY BE MORE THAN ONE
-                };
-                const newUrl = yield urlSchema_1.Urls.create(newUrlPayload);
-                return res.status(200).json({
-                    status: 'success',
-                    data: newUrl
-                });
-                // throw new appError('Url already created by you! Please check Url history!', 403)
+            console.log('ISCUSTOM', isCustom);
+            const oldUrlNotCustom = isCustom;
+            let newUrl;
+            // IF EXISTING URL IS NOT CUSTOM, AND USER NOT FIRST CREATOR, RETURN SAME URL FOR USER
+            // WHY? CAN'T GENERATE DIFFERENT SHORTURL FOR ONE LONGURL - USER SHARES ANALYTICS
+            if (req.user !== userId) {
+                if (!oldUrlNotCustom) {
+                    console.log('USER OLDURL');
+                    const newUrlPayload = {
+                        userId: req.user,
+                        longUrl,
+                        shortUrl,
+                        createdAt: Date.now(),
+                        expiresAt: Date.now() + (3600 * 24 * 30),
+                        // ISSUE: HOW TO INCREMENT WHEN DURING CLICKS 
+                        // TAKING FOR THE FACT THAT SHORTURL MAY BE MORE THAN ONE
+                        // TODO: READ UP MANY-TO-MANY RELATIONSSHIP
+                    };
+                    newUrl = yield urlSchema_1.Urls.create(newUrlPayload);
+                    return res.status(201).json({
+                        status: 'success',
+                        data: newUrl
+                    });
+                }
             }
-            const newUrl = oldLongUrl;
+            // IF USER IS THE CREATOR
+            newUrl = oldLongUrl;
             // RETURN SHORTURL IF LONG URL EXISTS
             return res.status(200).json({
                 status: 'success',
                 data: newUrl
             });
         }
-        var shortUrl;
+        let shortUrl;
         // CHECK IF IS CUSTOM URL
-        if (isCustom) {
+        if (isCustom === true) {
+            console.log('URL IS CUSTOM');
             shortUrl = yield createCustomUrl(customUrl, req);
-            returnCreateResponse(longUrl, shortUrl, req, res, true);
+            return returnCreateResponse(longUrl, shortUrl, req, res, true);
         }
-        // OTHERWISE:
         // CREATE SHORTURL ENCODING
-        const enconding = (0, base62_1.default)(longUrl);
+        let enconding = '';
+        enconding = (0, base62_1.default)(longUrl);
+        let oldShortUrl = yield urlSchema_1.Urls.findOne({ shortUrl: enconding });
+        while (oldShortUrl !== null) {
+            enconding = (0, base62_1.default)(longUrl);
+            oldShortUrl = yield urlSchema_1.Urls.findOne({ shortUrl: enconding });
+        }
         // IF SHORT URL ALREADY EXISTS, CREATE NEW SHORTURL ENCODING
         shortUrl = `${req.protocol}://${req.get('host')}/${enconding}`;
-        returnCreateResponse(longUrl, shortUrl, req, res);
+        return returnCreateResponse(longUrl, shortUrl, req, res);
     }
     catch (error) {
         next(new appError_1.default(error.message, error.statusCode));
@@ -83,7 +97,7 @@ const createUrl = (req, res, next) => __awaiter(void 0, void 0, void 0, function
 });
 exports.createUrl = createUrl;
 /**
- * Verify | Valid Url
+ * Verify Url
  * @param inputUrl
  * @returns Boolean
  */
@@ -113,6 +127,9 @@ function verifyUrl(inputUrl) {
  */
 function createCustomUrl(customUrl, req) {
     return __awaiter(this, void 0, void 0, function* () {
+        if (!customUrl) {
+            throw new appError_1.default('Please provide a custom link', 400);
+        }
         const oldCustomUrl = yield urlSchema_1.Urls.findOne({ shortUrl: customUrl });
         // CHECK IF CUSTOM NAME EXISTS
         if (oldCustomUrl) {

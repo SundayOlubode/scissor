@@ -1,4 +1,8 @@
-function convertToBase62(url: string) {
+/**
+ * RETURNS BASE 62 REPRESENTATION OF THE INPUT
+ * @returns String
+ */
+function convertToBase62(url: string): string {
     const characterSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     const base = 62;
     const length = 7;
@@ -17,9 +21,10 @@ function convertToBase62(url: string) {
         numericValue = Math.floor(numericValue / base);
     }
 
-    // Pad with leading zeros if necessary
+    // Pad with leading random characters if necessary
     while (base62Representation.length < length) {
-        base62Representation = '0' + base62Representation;
+        
+        base62Representation = characterSet.charAt(Math.floor(Math.random() * base)) + base62Representation;
     }
 
     return base62Representation;
