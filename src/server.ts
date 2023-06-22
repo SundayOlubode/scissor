@@ -3,6 +3,8 @@ import dotenv from 'dotenv'
 import logger from './utils/logger'
 import db from './models/db'
 import Cache from './configs/redis'
+import { event } from './controllers/shortUrlController'
+import { IUrl, Urls } from './models/urlSchema'
 
 dotenv.config()
 
@@ -13,6 +15,19 @@ process.on('uncaughtException', (error) => {
     logger.error(error.name, error.message);
     process.exit(1);
 
+})
+
+event.on('inc-counter', async (shortUrl) => {
+    const Url: IUrl | null = await Urls.findOne({ shortUrl })
+
+    if (Url) {
+        let { count }: IUrl = Url!
+        count! += 1
+
+        Url.count = count
+        await Url.save()
+    }
+    return
 })
 
 const server = app.listen(PORT, () => {

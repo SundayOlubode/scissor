@@ -17,7 +17,6 @@ const appError_1 = __importDefault(require("../utils/appError"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const userSchema_1 = require("../models/userSchema");
-const logger_1 = __importDefault(require("../utils/logger"));
 /**
  * Check User Authorization
  * @returns void
@@ -46,11 +45,10 @@ const authorize = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         if (!currentUser)
             throw new appError_1.default("Account Not Found, Please Login again!", 401);
         //Add Users to req object
-        req.user = currentUser._id;
+        req.user = (currentUser._id).toString();
         next();
     }
     catch (error) {
-        logger_1.default.error(error);
         next(new appError_1.default(error.message, error.statusCode));
         return;
     }

@@ -38,7 +38,6 @@ const createUrl = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         const oldLongUrl = yield urlSchema_1.Urls.findOne({ longUrl });
         if (oldLongUrl) {
             const { shortUrl, userId, isCustom } = oldLongUrl;
-            console.log('ISCUSTOM', isCustom);
             const oldUrlNotCustom = isCustom;
             let newUrl;
             // IF EXISTING URL IS NOT CUSTOM, AND USER NOT FIRST CREATOR, RETURN SAME URL FOR USER
@@ -74,7 +73,6 @@ const createUrl = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         let shortUrl;
         // CHECK IF IS CUSTOM URL
         if (isCustom === true) {
-            console.log('URL IS CUSTOM');
             shortUrl = yield createCustomUrl(customUrl, req);
             return returnCreateResponse(longUrl, shortUrl, req, res, true);
         }
@@ -158,9 +156,7 @@ function returnCreateResponse(longUrl, shortUrl, req, res, isCustom = false) {
                 isCustom
             });
             // SAVE IN CACHE LAYER
-            const cacheKey = longUrl;
-            const cacheValue = shortUrl;
-            yield redis_1.default.set(cacheKey, cacheValue);
+            yield redis_1.default.set(shortUrl, longUrl);
             return res.status(201).json({
                 status: 'success',
                 data: newUrl

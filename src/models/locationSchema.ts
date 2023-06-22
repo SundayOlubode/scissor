@@ -3,6 +3,7 @@ import { Schema, model, Model, Document } from 'mongoose';
 export interface ILocation extends Document{
     shortUrl: string;
     location: string;
+    count: number;
 }
 
 const locationSchema = new Schema<ILocation, Model<ILocation>, ILocation>({
@@ -13,6 +14,10 @@ const locationSchema = new Schema<ILocation, Model<ILocation>, ILocation>({
     location: {
         type: String,
         required: true
+    },
+    count: {
+        type: Number,
+        default: 1
     }
 });
 

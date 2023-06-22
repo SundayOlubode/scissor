@@ -33,7 +33,6 @@ export const createUrl = async (req: Request, res: Response, next: NextFunction)
         if (oldLongUrl) {
 
             const { shortUrl, userId, isCustom } = oldLongUrl
-            console.log('ISCUSTOM', isCustom);
 
             const oldUrlNotCustom = isCustom
 
@@ -41,6 +40,7 @@ export const createUrl = async (req: Request, res: Response, next: NextFunction)
             // IF EXISTING URL IS NOT CUSTOM, AND USER NOT FIRST CREATOR, RETURN SAME URL FOR USER
             // WHY? CAN'T GENERATE DIFFERENT SHORTURL FOR ONE LONGURL - USER SHARES ANALYTICS
             if (req.user !== userId) {
+                
                 if (!oldUrlNotCustom) {
                     console.log('USER OLDURL');
 
@@ -78,7 +78,6 @@ export const createUrl = async (req: Request, res: Response, next: NextFunction)
 
         // CHECK IF IS CUSTOM URL
         if (isCustom === true) {
-            console.log('URL IS CUSTOM');
             shortUrl = await createCustomUrl(customUrl, req)!
             return returnCreateResponse(longUrl, shortUrl, req, res, true)
         }
@@ -172,10 +171,7 @@ async function returnCreateResponse(longUrl: string, shortUrl: string, req: Requ
         })
 
         // SAVE IN CACHE LAYER
-        const cacheKey = longUrl
-        const cacheValue = shortUrl
-
-        await Cache.set(cacheKey, cacheValue)
+        await Cache.set(shortUrl, longUrl)
 
         return res.status(201).json({
             status: 'success',

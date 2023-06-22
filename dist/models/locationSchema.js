@@ -10,6 +10,10 @@ const locationSchema = new mongoose_1.Schema({
     location: {
         type: String,
         required: true
+    },
+    count: {
+        type: Number,
+        default: 1
     }
 });
 exports.Locations = (0, mongoose_1.model)('location', locationSchema);

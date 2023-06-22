@@ -44,10 +44,9 @@ const authorize = async (req: Request, res: Response, next: NextFunction): Promi
             throw new appError("Account Not Found, Please Login again!", 401);
 
         //Add Users to req object
-        req.user = currentUser._id;
+        req.user = (currentUser._id).toString();
         next();
     } catch (error: any) {
-        logger.error(error)
         next(new appError(error.message, error.statusCode));
         return;
     }
