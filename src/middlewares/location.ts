@@ -7,7 +7,7 @@ import appError from '../utils/appError';
 
 const getLocation = async (req: Request, res: Response, next: NextFunction) => {
 
-    // if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === 'production') {
 
         const shortUrl: string = req.params.shortUrl
 
@@ -36,7 +36,7 @@ const getLocation = async (req: Request, res: Response, next: NextFunction) => {
             next(new appError(error.message, error.statusCode));
             return;
         }
-    // }
+    }
 
     return next()
 }

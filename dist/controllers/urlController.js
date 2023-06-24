@@ -12,12 +12,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createUrl = void 0;
+exports.editCusomUrl = exports.createUrl = exports.event = void 0;
 const appError_1 = __importDefault(require("../utils/appError"));
 const urlSchema_1 = require("../models/urlSchema");
-const url_1 = require("url");
-const base62_1 = __importDefault(require("../utils/base62"));
 const redis_1 = __importDefault(require("../configs/redis"));
+const events_1 = __importDefault(require("events"));
+exports.event = new events_1.default();
+const base62_1 = __importDefault(require("../utils/base62"));
 /**
  * Create Short Url
  * @returns Response
@@ -58,6 +59,7 @@ const createUrl = (req, res, next) => __awaiter(void 0, void 0, void 0, function
                     newUrl = yield urlSchema_1.Urls.create(newUrlPayload);
                     return res.status(201).json({
                         status: 'success',
+                        message: 'Url created successfully',
                         data: newUrl
                     });
                 }
@@ -102,7 +104,7 @@ exports.createUrl = createUrl;
 function verifyUrl(inputUrl) {
     try {
         // Parse the input URL
-        const parsedUrl = new url_1.URL(inputUrl);
+        const parsedUrl = new URL(inputUrl);
         // Check if the parsed URL has a valid protocol (e.g., http or https)
         if (!parsedUrl.protocol || !['http:', 'https:'].includes(parsedUrl.protocol)) {
             return false;
@@ -167,3 +169,69 @@ function returnCreateResponse(longUrl, shortUrl, req, res, isCustom = false) {
         }
     });
 }
+const redirection = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        let { shortUrl } = req.params;
+        shortUrl = `${req.protocol}://${req.get('host')}/${shortUrl}`;
+        // Check short url in Cache
+        const urlInCache = yield redis_1.default.get(shortUrl);
+        if (urlInCache) {
+            setTimeout(() => {
+                exports.event.emit('inc-counter', shortUrl);
+            }, 2000);
+            res.redirect(urlInCache);
+            return;
+        }
+        const Url = yield urlSchema_1.Urls.findOne({ shortUrl });
+        if (!Url) {
+            throw new appError_1.default('URL not found!', 404);
+        }
+        let { longUrl, count } = Url;
+        count += 1;
+        Url.count = count;
+        yield Url.save();
+        // SAVE IN CACHE LAYER
+        yield redis_1.default.set(shortUrl, longUrl);
+        res.redirect(longUrl);
+        return;
+    }
+    catch (error) {
+        next(new appError_1.default(error.message, error.statusCode));
+        return;
+    }
+});
+const editCusomUrl = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const shortUrl = req.body.shortUrl;
+        const newCustomUrl = req.body.newCustomUrl;
+        // CHECK IF THE CUSTOM URL EXISTS
+        const currentUrl = yield urlSchema_1.Urls.findOne({ shortUrl, isCustom: true });
+        if (!currentUrl) {
+            throw new appError_1.default('Url not found!', 400);
+        }
+        // CHECK IF THE NEW CUSTOM URL EXISTS
+        const newCustomExists = yield urlSchema_1.Urls.findOne({ shortUrl: newCustomUrl });
+        if (newCustomExists) {
+            throw new appError_1.default('Link not available. Please provide new custom link', 401);
+        }
+        // CHECK IF USER IS OWNER
+        if (!(req.user === currentUrl.userId)) {
+            throw new appError_1.default('Unauthorized!', 401);
+        }
+        currentUrl.shortUrl = newCustomUrl;
+        yield currentUrl.save();
+        yield redis_1.default.set(newCustomUrl, currentUrl.longUrl);
+        res.status(200).json({
+            status: 'success',
+            message: 'Custom Url changed successfully!',
+            data: currentUrl
+        });
+        return;
+    }
+    catch (error) {
+        next(new appError_1.default(error.message, error.statusCode));
+        return;
+    }
+});
+exports.editCusomUrl = editCusomUrl;
+exports.default = redirection;

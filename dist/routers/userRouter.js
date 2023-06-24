@@ -4,9 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const urlController_1 = require("../controllers/urlController");
 const authorize_1 = __importDefault(require("../middlewares/authorize"));
+const urlRouter_1 = __importDefault(require("./urlRouter"));
 const router = (0, express_1.Router)();
-router.post('/create', authorize_1.default, urlController_1.createUrl);
-router.patch('/edit', authorize_1.default, urlController_1.editCusomUrl);
+router.use(authorize_1.default);
+router.use('/url', urlRouter_1.default);
 exports.default = router;

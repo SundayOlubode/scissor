@@ -6,8 +6,9 @@ import urlRouter from './routers/urlRouter'
 import globalErrorHandler from './controllers/errorController'
 import appError from './utils/appError'
 import authRouter from './routers/authRouter'
-import redirection from './controllers/shortUrlController'
+import redirection from './controllers/urlController'
 import getLocation from './middlewares/location'
+import userRouter from './routers/userRouter'
 
 const app = express()
 
@@ -26,7 +27,7 @@ app.get('/', (req, res, next) => {
 })
 
 app.use('/api/v1/auth', authRouter)
-app.use('/api/v1/url', urlRouter)
+app.use('/api/v1/user', userRouter)
 
 app.get('/:shortUrl', getLocation, redirection)
 

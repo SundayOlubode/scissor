@@ -17,7 +17,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const logger_1 = __importDefault(require("./utils/logger"));
 const db_1 = __importDefault(require("./models/db"));
 const redis_1 = __importDefault(require("./configs/redis"));
-const shortUrlController_1 = require("./controllers/shortUrlController");
+const urlController_1 = require("./controllers/urlController");
 const urlSchema_1 = require("./models/urlSchema");
 dotenv_1.default.config();
 const PORT = process.env.PORT;
@@ -26,7 +26,7 @@ process.on('uncaughtException', (error) => {
     logger_1.default.error(error.name, error.message);
     process.exit(1);
 });
-shortUrlController_1.event.on('inc-counter', (shortUrl) => __awaiter(void 0, void 0, void 0, function* () {
+urlController_1.event.on('inc-counter', (shortUrl) => __awaiter(void 0, void 0, void 0, function* () {
     const Url = yield urlSchema_1.Urls.findOne({ shortUrl });
     if (Url) {
         let { count } = Url;

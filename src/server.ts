@@ -3,7 +3,7 @@ import dotenv from 'dotenv'
 import logger from './utils/logger'
 import db from './models/db'
 import Cache from './configs/redis'
-import { event } from './controllers/shortUrlController'
+import { event } from './controllers/urlController'
 import { IUrl, Urls } from './models/urlSchema'
 
 dotenv.config()

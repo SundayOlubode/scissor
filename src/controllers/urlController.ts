@@ -1,11 +1,15 @@
 import { Response, Request, NextFunction, RequestHandler } from "express"
 import appError from "../utils/appError"
 import { Urls, IUrl } from "../models/urlSchema"
-import { Users, IUser } from "../models/userSchema"
-import { URL } from 'url'
-import convertToBase62 from "../utils/base62"
 import Cache from "../configs/redis"
+import cron from 'node-cron'
+import EventEmitter from 'events'
+export const event = new EventEmitter()
+import convertToBase62 from '../utils/base62'
 
+interface ReqParams {
+    shortUrl?: string
+}
 
 
 /**
@@ -40,7 +44,7 @@ export const createUrl = async (req: Request, res: Response, next: NextFunction)
             // IF EXISTING URL IS NOT CUSTOM, AND USER NOT FIRST CREATOR, RETURN SAME URL FOR USER
             // WHY? CAN'T GENERATE DIFFERENT SHORTURL FOR ONE LONGURL - USER SHARES ANALYTICS
             if (req.user !== userId) {
-                
+
                 if (!oldUrlNotCustom) {
                     console.log('USER OLDURL');
 
@@ -59,6 +63,7 @@ export const createUrl = async (req: Request, res: Response, next: NextFunction)
 
                     return res.status(201).json({
                         status: 'success',
+                        message: 'Url created successfully',
                         data: newUrl
                     })
                 }
@@ -181,3 +186,89 @@ async function returnCreateResponse(longUrl: string, shortUrl: string, req: Requ
         throw new appError(error.message, error.statusCode)
     }
 }
+
+const redirection = async (req: Request, res: Response, next: NextFunction):
+    Promise<Response<any, Record<string, any>> | Error | undefined> => {
+    try {
+
+        let { shortUrl }: ReqParams = req.params
+
+        shortUrl = `${req.protocol}://${req.get('host')}/${shortUrl}`
+
+        // Check short url in Cache
+        const urlInCache = await Cache.get(shortUrl)
+
+        if (urlInCache) {
+            setTimeout(() => {
+                event.emit('inc-counter', shortUrl)
+            }, 2000)
+
+            res.redirect(urlInCache);
+            return;
+        }
+
+        const Url: IUrl | null = await Urls.findOne({ shortUrl })
+
+        if (!Url) {
+            throw new appError('URL not found!', 404)
+        }
+
+        let { longUrl, count }: IUrl = Url!
+        count! += 1
+
+        Url.count = count
+        await Url.save()
+
+        // SAVE IN CACHE LAYER
+        await Cache.set(shortUrl, longUrl)
+
+        res.redirect(longUrl);
+        return;
+
+    } catch (error: any) {
+        next(new appError(error.message, error.statusCode))
+        return;
+    }
+}
+
+export const editCusomUrl = async (req: Request, res: Response, next: NextFunction):
+    Promise<Response<any, Record<string, any>> | Error | undefined> => {
+    try {
+        const shortUrl = req.body.shortUrl
+        const newCustomUrl = req.body.newCustomUrl
+
+        // CHECK IF THE CUSTOM URL EXISTS
+        const currentUrl: IUrl | null = await Urls.findOne({ shortUrl, isCustom: true })
+        if (!currentUrl) {
+            throw new appError('Url not found!', 400)
+        }
+
+        // CHECK IF THE NEW CUSTOM URL EXISTS
+        const newCustomExists: IUrl | null = await Urls.findOne({ shortUrl: newCustomUrl })
+        if (newCustomExists) {
+            throw new appError('Link not available. Please provide new custom link', 401)
+        }
+
+        // CHECK IF USER IS OWNER
+        if (!(req.user === currentUrl.userId)) {
+            throw new appError('Unauthorized!', 401)
+        }
+
+        currentUrl.shortUrl = newCustomUrl
+        await currentUrl.save()
+
+        await Cache.set(newCustomUrl, currentUrl.longUrl)
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Custom Url changed successfully!',
+            data: currentUrl
+        })
+        return;
+    } catch (error: any) {
+        next(new appError(error.message, error.statusCode))
+        return;
+    }
+}
+
+export default redirection
