@@ -30,5 +30,13 @@ const urlSchema = new mongoose_1.Schema({
         type: Number,
         default: 0
     },
+    hasQR: {
+        type: Boolean,
+        default: false
+    },
+    QRLink: {
+        type: String,
+        required: false
+    }
 });
 exports.Urls = (0, mongoose_1.model)('url', urlSchema);

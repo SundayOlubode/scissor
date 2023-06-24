@@ -17,8 +17,11 @@ const appError_1 = __importDefault(require("../utils/appError"));
 const urlSchema_1 = require("../models/urlSchema");
 const redis_1 = __importDefault(require("../configs/redis"));
 const events_1 = __importDefault(require("events"));
-exports.event = new events_1.default();
 const base62_1 = __importDefault(require("../utils/base62"));
+const cloudinary_1 = __importDefault(require("../configs/cloudinary"));
+const qrcode_1 = __importDefault(require("qrcode"));
+const logger_1 = __importDefault(require("../utils/logger"));
+exports.event = new events_1.default();
 /**
  * Create Short Url
  * @returns Response
@@ -29,7 +32,7 @@ const createUrl = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         const longUrl = req.body.longUrl;
         const isCustom = req.body.isCustom;
         const customUrl = req.body.customUrl;
-        const shouldHaveQR = req.body.shouldHaveQR;
+        const hasQR = req.body.hasQR;
         // VERIFY URL
         const isValidUrl = verifyUrl(longUrl);
         if (!isValidUrl) {
@@ -147,9 +150,10 @@ function createCustomUrl(customUrl, req) {
  */
 function returnCreateResponse(longUrl, shortUrl, req, res, isCustom = false) {
     return __awaiter(this, void 0, void 0, function* () {
+        let newUrl;
         try {
             // SAVE LONG AND SHORT URL IN DB
-            const newUrl = yield urlSchema_1.Urls.create({
+            newUrl = yield urlSchema_1.Urls.create({
                 longUrl,
                 shortUrl,
                 createdAt: Date.now(),
@@ -157,12 +161,44 @@ function returnCreateResponse(longUrl, shortUrl, req, res, isCustom = false) {
                 userId: req.user,
                 isCustom
             });
+            // ADD QR IF REQUESTED
+            if (req.body.hasQR) {
+                newUrl = yield generateQRCode(newUrl);
+            }
             // SAVE IN CACHE LAYER
             yield redis_1.default.set(shortUrl, longUrl);
             return res.status(201).json({
                 status: 'success',
                 data: newUrl
             });
+        }
+        catch (error) {
+            throw new appError_1.default(error.message, error.statusCode);
+        }
+    });
+}
+function generateQRCode(Url) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            // let QRPath = `${__dirname}/../QRs/${Url.shortUrl.slice(-7)}.png`
+            let QRPath = `QRs/${Url.shortUrl.slice(-7)}.png`;
+            let QRCodeUpload;
+            let QRCodeLink;
+            // GENERATE QR IMAGE
+            qrcode_1.default.toFile(QRPath, Url.shortUrl, (error) => {
+                if (error) {
+                    logger_1.default.info(error);
+                    throw new appError_1.default(error.message, error.statusCode);
+                }
+            });
+            // SAVE IMAGE PATH TO CLOUD
+            QRCodeUpload = yield cloudinary_1.default.uploader.upload(QRPath);
+            QRCodeLink = QRCodeUpload.url;
+            // ADD CLOUD LINK TO DB
+            Url.QRLink = QRCodeLink;
+            Url.hasQR = true;
+            yield Url.save();
+            return Url;
         }
         catch (error) {
             throw new appError_1.default(error.message, error.statusCode);

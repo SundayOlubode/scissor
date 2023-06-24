@@ -1,6 +1,6 @@
 import { Schema, model, Model, Document } from 'mongoose';
 
-export interface IUrl extends Document{
+export interface IUrl extends Document {
     longUrl: string;
     shortUrl: string;
     createdAt: number;
@@ -8,7 +8,8 @@ export interface IUrl extends Document{
     userId?: string;
     count?: number;
     isCustom?: boolean;
-    // save?(): void
+    hasQR: boolean;
+    QRLink: string;
 }
 
 const urlSchema = new Schema<IUrl, Model<IUrl>, IUrl>({
@@ -39,6 +40,14 @@ const urlSchema = new Schema<IUrl, Model<IUrl>, IUrl>({
         type: Number,
         default: 0
     },
+    hasQR: {
+        type: Boolean,
+        default: false
+    },
+    QRLink: {
+        type: String,
+        required: false
+    }
 });
 
 export const Urls = model<IUrl>('url', urlSchema);

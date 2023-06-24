@@ -2,15 +2,19 @@ import { Response, Request, NextFunction, RequestHandler } from "express"
 import appError from "../utils/appError"
 import { Urls, IUrl } from "../models/urlSchema"
 import Cache from "../configs/redis"
-import cron from 'node-cron'
 import EventEmitter from 'events'
-export const event = new EventEmitter()
 import convertToBase62 from '../utils/base62'
+import cloudinary from "../configs/cloudinary"
+import QRCode from 'qrcode'
+import { error } from "console"
+import logger from "../utils/logger"
+import { UploadApiResponse } from "cloudinary"
 
 interface ReqParams {
     shortUrl?: string
 }
 
+export const event = new EventEmitter()
 
 /**
  * Create Short Url
@@ -23,7 +27,7 @@ export const createUrl = async (req: Request, res: Response, next: NextFunction)
         const longUrl: string = req.body.longUrl
         const isCustom: boolean = req.body.isCustom
         const customUrl: string = req.body.customUrl
-        const shouldHaveQR: boolean = req.body.shouldHaveQR
+        const hasQR: boolean = req.body.hasQR
 
         // VERIFY URL
         const isValidUrl = verifyUrl(longUrl)
@@ -164,9 +168,10 @@ async function createCustomUrl(customUrl: string, req: Request):
  */
 async function returnCreateResponse(longUrl: string, shortUrl: string, req: Request, res: Response, isCustom: boolean = false):
     Promise<Response<any, Record<string, any>> | Error | undefined> {
+    let newUrl: IUrl
     try {
         // SAVE LONG AND SHORT URL IN DB
-        const newUrl: IUrl = await Urls.create({
+        newUrl = await Urls.create({
             longUrl,
             shortUrl,
             createdAt: Date.now(),
@@ -174,6 +179,11 @@ async function returnCreateResponse(longUrl: string, shortUrl: string, req: Requ
             userId: req.user,
             isCustom
         })
+
+        // ADD QR IF REQUESTED
+        if (req.body.hasQR) {
+            newUrl = await generateQRCode(newUrl)
+        }
 
         // SAVE IN CACHE LAYER
         await Cache.set(shortUrl, longUrl)
@@ -184,6 +194,37 @@ async function returnCreateResponse(longUrl: string, shortUrl: string, req: Requ
         })
     } catch (error: any) {
         throw new appError(error.message, error.statusCode)
+    }
+}
+
+async function generateQRCode(Url: IUrl):
+    Promise<IUrl> {
+    try {
+        // let QRPath = `${__dirname}/../QRs/${Url.shortUrl.slice(-7)}.png`
+        let QRPath = `QRs/${Url.shortUrl.slice(-7)}.png`
+        let QRCodeUpload: UploadApiResponse
+        let QRCodeLink: string
+
+        // GENERATE QR IMAGE
+        QRCode.toFile(QRPath, Url.shortUrl, (error: any) => {
+            if (error) {
+                logger.info(error)
+                throw new appError(error.message, error.statusCode)
+            }
+        })
+
+        // SAVE IMAGE PATH TO CLOUD
+        QRCodeUpload = await cloudinary.uploader.upload(QRPath)
+        QRCodeLink = QRCodeUpload.url
+
+        // ADD CLOUD LINK TO DB
+        Url.QRLink = QRCodeLink
+        Url.hasQR = true
+        await Url.save()
+        return Url;
+
+    } catch (error: any) {
+        throw new appError(error.message, error.statusCode);
     }
 }
 
