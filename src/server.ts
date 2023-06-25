@@ -33,7 +33,7 @@ event.on('inc-counter', async (shortUrl) => {
 const server = app.listen(PORT, () => {
     logger.info(`Server listening on port ${PORT}`);
     db.init()
-    // Cache.connect()
+    Cache.connect()
 })
 
 process.on('unhandledRejection', (reason) => {
