@@ -13,7 +13,15 @@ const authRouter_1 = __importDefault(require("./routers/authRouter"));
 const urlController_1 = __importDefault(require("./controllers/urlController"));
 const location_1 = __importDefault(require("./middlewares/location"));
 const userRouter_1 = __importDefault(require("./routers/userRouter"));
+require('./configs/OAuth');
 const app = (0, express_1.default)();
+const express_session_1 = __importDefault(require("express-session"));
+// USE SESSION
+app.use((0, express_session_1.default)({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false
+}));
 app.use(body_parser_1.default.json());
 app.use(body_parser_1.default.urlencoded({ extended: false }));
 app.use(httpLogger_1.default);

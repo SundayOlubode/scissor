@@ -1,7 +1,7 @@
 import { createPasswdResetToken } from "../utils/tokens"
 import createSendToken from "../utils/createSendToken"
 import { Users, IUser } from "../models/userSchema"
-import { Request, Response, NextFunction } from "express"
+import { Request, Response, NextFunction, CookieOptions } from "express"
 import appError from "../utils/appError"
 import Email from "../utils/emails"
 import crypto from 'crypto'
@@ -33,12 +33,6 @@ export const signup = async (req: Request, res: Response, next: NextFunction):
         if (oldUser) throw new appError("User already exists. Please login", 409);
 
         const user: IUser | null = await Users.create(req.body)
-
-        if (process.env.NODE_ENV === 'production') {
-            // SEND WELCOME MAIL
-            let url = process.env.WELCOMEURL!
-            await new Email(user, url).sendWelcome()
-        }
 
         createSendToken(user, 201, res)
 
@@ -167,4 +161,29 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
         next(new appError(error.message, error.statusCode));
         return;
     }
+}
+
+const redirectURL = 'http://localhost:3000'
+
+/**
+ * Social Auth Controller
+ */
+export const socialAuth = (req: Request, res: Response, next: NextFunction) => {
+
+    // OBTAIN USER DETAILS FROM SESSION
+    const {
+        user: { user, token, oldUser }
+    } = req.session.passport;    
+
+    const cookieOptions: CookieOptions = {
+        expires: new Date(Date.now() + 1 * 60 * 60 * 1000),
+        httpOnly: true,
+    };
+    if (process.env.NODE_ENV === "production") cookieOptions.secure = true;
+
+    // Send token to client
+    res.cookie("jwt", token, cookieOptions);
+
+    res.redirect('/')
+
 }

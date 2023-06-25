@@ -7,27 +7,22 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 export interface IUser extends Document {
+    username?: string;
     email: string;
-    firstname: string;
-    lastname: string;
     createdAt?: string;
     password?: string;
     passwordResetExpiry: number | null;
     passwordToken: string | null;
+    googleId?: string;
     isValidPassword(password: string): boolean;
     createJwt(): string;
 }
 
 const userSchema = new Schema<IUser>({
+    username: {
+        type: String,
+    },
     email: {
-        type: String,
-        required: true
-    },
-    firstname: {
-        type: String,
-        required: true
-    },
-    lastname: {
         type: String,
         required: true
     },
@@ -35,6 +30,9 @@ const userSchema = new Schema<IUser>({
         type: String,
     },
     createdAt: {
+        type: String
+    },
+    googleId: {
         type: String
     },
     passwordToken: String,

@@ -1,22 +1,39 @@
-import express from 'express'
+import express, { Application } from 'express'
 import bodyParser from 'body-parser'
 import httpLogger from './utils/httpLogger'
 import rateLimiter from './utils/rateLimiter'
-import urlRouter from './routers/urlRouter'
 import globalErrorHandler from './controllers/errorController'
 import appError from './utils/appError'
 import authRouter from './routers/authRouter'
 import redirection from './controllers/urlController'
 import getLocation from './middlewares/location'
 import userRouter from './routers/userRouter'
+require('./configs/OAuth')
 
-const app = express()
+const app: Application = express()
 
+interface ISession {
+    secret: string
+    resave: boolean
+    saveUninitialized: boolean
+}
+
+import session from 'express-session'
+
+// USE SESSION
+app.use(
+    session({
+        secret: process.env.SESSION_SECRET!,
+        resave: false,
+        saveUninitialized: false
+    })
+)
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 
 app.use(httpLogger)
 app.use(rateLimiter)
+
 
 
 app.get('/', (req, res, next) => {

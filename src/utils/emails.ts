@@ -16,13 +16,13 @@ const PROD_ADMIN_MAIL = process.env.PROD_ADMIN_MAIL
 
 class Email {
     to: string;
-    firstname: string;
+    username: string;
     url: string;
     from: string;
 
     constructor(user: IUser, url: string) {
         this.to = user.email;
-        this.firstname = user.firstname
+        this.username = user.username!
         this.url = url
         this.from = `${process.env.EMAIL_SENDER} ${process.env.EMAIL_FROM}`;
     }
@@ -35,7 +35,7 @@ class Email {
             subject,
             template,
             'h:X-Mailgun-Variables': JSON.stringify({
-                firstname: this.firstname,
+                username: this.username,
                 url: this.url,
             })
         }
@@ -46,11 +46,6 @@ class Email {
             throw new appError(error.message, 500)
         }
 
-    }
-
-    // SEND WELCOME MAIL
-    async sendWelcome() {
-        await this.send("test-welcome", "Welcome! Luke 6:38");
     }
 
     // SEND PASSWORD RESET LINK

@@ -19,15 +19,10 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const userSchema = new mongoose_1.Schema({
+    username: {
+        type: String,
+    },
     email: {
-        type: String,
-        required: true
-    },
-    firstname: {
-        type: String,
-        required: true
-    },
-    lastname: {
         type: String,
         required: true
     },
@@ -35,6 +30,9 @@ const userSchema = new mongoose_1.Schema({
         type: String,
     },
     createdAt: {
+        type: String
+    },
+    googleId: {
         type: String
     },
     passwordToken: String,
