@@ -16,7 +16,6 @@ const app_1 = __importDefault(require("./app"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const logger_1 = __importDefault(require("./utils/logger"));
 const db_1 = __importDefault(require("./models/db"));
-const redis_1 = __importDefault(require("./configs/redis"));
 const urlController_1 = require("./controllers/urlController");
 const urlSchema_1 = require("./models/urlSchema");
 dotenv_1.default.config();
@@ -39,7 +38,7 @@ urlController_1.event.on('inc-counter', (shortUrl) => __awaiter(void 0, void 0, 
 const server = app_1.default.listen(PORT, () => {
     logger_1.default.info(`Server listening on port ${PORT}`);
     db_1.default.init();
-    redis_1.default.connect();
+    // Cache.connect()
 });
 process.on('unhandledRejection', (reason) => {
     logger_1.default.error("UNHANDLED REJECTION! 🔥 Shutting Down...");

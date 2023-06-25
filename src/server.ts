@@ -18,8 +18,8 @@ process.on('uncaughtException', (error) => {
 })
 
 event.on('inc-counter', async (shortUrl) => {
-    const Url: IUrl | null = await Urls.findOne({ shortUrl })
 
+    const Url: IUrl | null = await Urls.findOne({ shortUrl })
     if (Url) {
         let { count }: IUrl = Url!
         count! += 1
@@ -33,7 +33,7 @@ event.on('inc-counter', async (shortUrl) => {
 const server = app.listen(PORT, () => {
     logger.info(`Server listening on port ${PORT}`);
     db.init()
-    Cache.connect()
+    // Cache.connect()
 })
 
 process.on('unhandledRejection', (reason) => {
