@@ -30,7 +30,7 @@ const createSendToken = async (user: IUser, statusCode: number, res: Response):
     user.password = undefined
 
     return res.status(statusCode).json({
-        status: "Success",
+        status: "success",
         data: {
             user,
             token,

@@ -25,9 +25,9 @@ require('dotenv').config();
  * @returns Response
  */
 const signup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const { email, password, firstname, lastname } = req.body;
+    const { email, password, username } = req.body;
     try {
-        if (!(email && password && firstname && lastname)) {
+        if (!(email && password && username)) {
             throw new appError_1.default('Please provide full sign up details', 401);
         }
         const oldUser = yield userSchema_1.Users.findOne({ email });
@@ -80,9 +80,9 @@ const forgotPassword = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         user.passwordResetExpiry = passwordResetExpiry;
         yield user.save();
         const resetUrl = `${req.protocol}://${req.get("host")}/api/v1/auth/resetpassword/${resetToken}`;
-        if (process.env.NODE_ENV === 'production') {
-            yield new emails_1.default(user, resetUrl).sendPasswordReset();
-        }
+        // if (process.env.NODE_ENV === 'production') {
+        yield new emails_1.default(user, resetUrl).sendPasswordReset();
+        // }
         // SEND RESPONSE
         res.status(200).json({
             status: "success",
@@ -122,9 +122,9 @@ const resetPassword = (req, res, next) => __awaiter(void 0, void 0, void 0, func
         user.passwordResetExpiry = null;
         yield user.save();
         const url = `${req.protocol}://${req.get("host")}/api/v1/auth/login`;
-        if (process.env.NODE_ENV === 'production') {
-            yield new emails_1.default(user, url).sendVerifiedPSWD();
-        }
+        // if (process.env.NODE_ENV === 'production') {
+        yield new emails_1.default(user, url).sendVerifiedPSWD();
+        // }
         // LOG IN USER AND SEND JWT
         (0, createSendToken_1.default)(user, 200, res);
     }

@@ -23,6 +23,9 @@ const mailgunAuth = {
 const mg = (0, mailgun_js_1.default)(mailgunAuth);
 const DEV_ADMIN_MAIL = process.env.DEV_ADMIN_MAIL;
 const PROD_ADMIN_MAIL = process.env.PROD_ADMIN_MAIL;
+/**
+ * Send Email
+ */
 class Email {
     constructor(user, url) {
         this.to = user.email;
@@ -53,18 +56,13 @@ class Email {
     // SEND PASSWORD RESET LINK
     sendPasswordReset() {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.send("reset-password", "Your password reset link(valid for only 10 minutes)");
+            yield this.send("reset-password-scissor", "Your password reset link(valid for only 10 minutes)");
         });
     }
     // SEND SUCCESFUL PASSWORD RESET MAIL
     sendVerifiedPSWD() {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.send('verified-pswd', 'You have reset your password successfully!');
-        });
-    }
-    sendDeclinedDonation() {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield this.send('reject-donation', 'A message from Admin');
+            yield this.send('verified-pswd-scissor', 'You have reset your password successfully!');
         });
     }
 }

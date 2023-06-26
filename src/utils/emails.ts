@@ -14,6 +14,9 @@ const mg = mailGun(mailgunAuth)
 const DEV_ADMIN_MAIL = process.env.DEV_ADMIN_MAIL
 const PROD_ADMIN_MAIL = process.env.PROD_ADMIN_MAIL
 
+/**
+ * Send Email
+ */
 class Email {
     to: string;
     username: string;
@@ -50,16 +53,12 @@ class Email {
 
     // SEND PASSWORD RESET LINK
     async sendPasswordReset() {
-        await this.send("reset-password", "Your password reset link(valid for only 10 minutes)");
+        await this.send("reset-password-scissor", "Your password reset link(valid for only 10 minutes)");
     }
 
     // SEND SUCCESFUL PASSWORD RESET MAIL
     async sendVerifiedPSWD() {
-        await this.send('verified-pswd', 'You have reset your password successfully!')
-    }
-
-    async sendDeclinedDonation(){
-        await this.send('reject-donation', 'A message from Admin')
+        await this.send('verified-pswd-scissor', 'You have reset your password successfully!')
     }
 }
 

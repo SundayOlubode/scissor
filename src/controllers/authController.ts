@@ -10,8 +10,7 @@ require('dotenv').config()
 interface IReqBody {
     email: string;
     password?: string;
-    firstname?: string;
-    lastname?: string;
+    username: string;
 }
 
 /**
@@ -21,11 +20,11 @@ interface IReqBody {
 export const signup = async (req: Request, res: Response, next: NextFunction):
     Promise<Response<any, Record<string, any>> | Error | undefined> => {
 
-        const { email, password, firstname, lastname }: IReqBody = req.body
+        const { email, password, username }: IReqBody = req.body
 
     try {
 
-        if (!(email && password && firstname && lastname)) {
+        if (!(email && password && username)) {
             throw new appError('Please provide full sign up details', 401)
         }
 
@@ -96,9 +95,9 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
             "host"
         )}/api/v1/auth/resetpassword/${resetToken}`;
 
-        if (process.env.NODE_ENV === 'production') {
+        // if (process.env.NODE_ENV === 'production') {
             await new Email(user, resetUrl).sendPasswordReset();
-        }
+        // }
 
         // SEND RESPONSE
         res.status(200).json({
@@ -150,9 +149,9 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
 
         const url = `${req.protocol}://${req.get("host")}/api/v1/auth/login`;
 
-        if (process.env.NODE_ENV === 'production') {
+        // if (process.env.NODE_ENV === 'production') {
             await new Email(user, url).sendVerifiedPSWD();
-        }
+        // }
 
         // LOG IN USER AND SEND JWT
         createSendToken(user, 200, res);
