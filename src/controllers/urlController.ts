@@ -6,10 +6,10 @@ import EventEmitter from 'events'
 import convertToBase62 from '../utils/base62'
 import cloudinary from "../configs/cloudinary"
 import QRCode from 'qrcode'
-import { count, error } from "console"
 import logger from "../utils/logger"
 import { UploadApiResponse } from "cloudinary"
 import { ILocation, Locations } from "../models/locationSchema"
+import fs from "fs"
 
 interface ReqParams {
     shortUrl?: string
@@ -215,6 +215,13 @@ async function generateQRCode(Url: IUrl):
         // SAVE IMAGE PATH TO CLOUD
         QRCodeUpload = await cloudinary.uploader.upload(QRPath)
         QRCodeLink = QRCodeUpload.url
+
+        // REMOVE QR
+        fs.unlink(QRPath, (err) => {
+            if (err) {
+                logger.error('Error deleting the file:', err);
+            }
+        });
 
         // ADD CLOUD LINK TO DB
         Url.QRLink = QRCodeLink

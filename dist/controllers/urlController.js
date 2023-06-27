@@ -22,6 +22,7 @@ const cloudinary_1 = __importDefault(require("../configs/cloudinary"));
 const qrcode_1 = __importDefault(require("qrcode"));
 const logger_1 = __importDefault(require("../utils/logger"));
 const locationSchema_1 = require("../models/locationSchema");
+const fs_1 = __importDefault(require("fs"));
 exports.event = new events_1.default();
 /**
  * Create Short Url
@@ -192,6 +193,12 @@ function generateQRCode(Url) {
             // SAVE IMAGE PATH TO CLOUD
             QRCodeUpload = yield cloudinary_1.default.uploader.upload(QRPath);
             QRCodeLink = QRCodeUpload.url;
+            // REMOVE QR
+            fs_1.default.unlink(QRPath, (err) => {
+                if (err) {
+                    logger_1.default.error('Error deleting the file:', err);
+                }
+            });
             // ADD CLOUD LINK TO DB
             Url.QRLink = QRCodeLink;
             Url.hasQR = true;
