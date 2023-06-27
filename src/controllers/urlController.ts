@@ -6,9 +6,10 @@ import EventEmitter from 'events'
 import convertToBase62 from '../utils/base62'
 import cloudinary from "../configs/cloudinary"
 import QRCode from 'qrcode'
-import { error } from "console"
+import { count, error } from "console"
 import logger from "../utils/logger"
 import { UploadApiResponse } from "cloudinary"
+import { ILocation, Locations } from "../models/locationSchema"
 
 interface ReqParams {
     shortUrl?: string
@@ -58,9 +59,7 @@ export const createUrl = async (req: Request, res: Response, next: NextFunction)
                         shortUrl,
                         createdAt: Date.now(),
                         expiresAt: Date.now() + (3600 * 24 * 30),
-                        // ISSUE: HOW TO INCREMENT WHEN DURING CLICKS 
-                        // TAKING FOR THE FACT THAT SHORTURL MAY BE MORE THAN ONE
-                        // TODO: READ UP MANY-TO-MANY RELATIONSSHIP
+
                     }
 
                     newUrl = await Urls.create(newUrlPayload)
@@ -284,8 +283,10 @@ export const editCusomUrl = async (req: Request, res: Response, next: NextFuncti
             throw new appError('Url not found!', 400)
         }
 
+        const newUrl = `${req.protocol}://${req.get('host')}/${newCustomUrl}`
+
         // CHECK IF THE NEW CUSTOM URL EXISTS
-        const newCustomExists: IUrl | null = await Urls.findOne({ shortUrl: newCustomUrl })
+        const newCustomExists: IUrl | null = await Urls.findOne({ shortUrl: newUrl })
         if (newCustomExists) {
             throw new appError('Link not available. Please provide new custom link', 401)
         }
@@ -295,7 +296,7 @@ export const editCusomUrl = async (req: Request, res: Response, next: NextFuncti
             throw new appError('Unauthorized!', 401)
         }
 
-        currentUrl.shortUrl = newCustomUrl
+        currentUrl.shortUrl = newUrl
         await currentUrl.save()
 
         await Cache.set(newCustomUrl, currentUrl.longUrl)
@@ -306,6 +307,44 @@ export const editCusomUrl = async (req: Request, res: Response, next: NextFuncti
             data: currentUrl
         })
         return;
+    } catch (error: any) {
+        next(new appError(error.message, error.statusCode))
+        return;
+    }
+}
+
+export const getUrlAnalytics = async (req: Request, res: Response, next: NextFunction):
+    Promise<Response<any, Record<string, any>> | Error | undefined> => {
+
+    try {
+
+        // GET SHORTURL FROM BODY
+        let { shortUrl } = req.body
+        shortUrl = `${req.protocol}://${req.get('host')}/${shortUrl}`
+
+        // GET URL FROM DB
+        const Url: IUrl | null = await Urls.findOne({ shortUrl })
+
+        // SET TOTALCLICKS TO URL COUNTS
+        let totalClicks: number;
+        if (Url) {
+            totalClicks = Url.count!
+        }
+        totalClicks = 0
+
+        // GET LOCATIONS OF SHORTURL
+        let Location: ILocation[] | null
+        Location = await Locations.find({ shortUrl })
+
+        // RETURN LOCATION PLUS TOTAL CLICKS
+        res.status(200).json({
+            status: 'success',
+            data: {
+                totalClicks,
+                Locations: Location
+            }
+        })
+        return
     } catch (error: any) {
         next(new appError(error.message, error.statusCode))
         return;

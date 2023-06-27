@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.editCusomUrl = exports.createUrl = exports.event = void 0;
+exports.getUrlAnalytics = exports.editCusomUrl = exports.createUrl = exports.event = void 0;
 const appError_1 = __importDefault(require("../utils/appError"));
 const urlSchema_1 = require("../models/urlSchema");
 const redis_1 = __importDefault(require("../configs/redis"));
@@ -21,6 +21,7 @@ const base62_1 = __importDefault(require("../utils/base62"));
 const cloudinary_1 = __importDefault(require("../configs/cloudinary"));
 const qrcode_1 = __importDefault(require("qrcode"));
 const logger_1 = __importDefault(require("../utils/logger"));
+const locationSchema_1 = require("../models/locationSchema");
 exports.event = new events_1.default();
 /**
  * Create Short Url
@@ -55,9 +56,6 @@ const createUrl = (req, res, next) => __awaiter(void 0, void 0, void 0, function
                         shortUrl,
                         createdAt: Date.now(),
                         expiresAt: Date.now() + (3600 * 24 * 30),
-                        // ISSUE: HOW TO INCREMENT WHEN DURING CLICKS 
-                        // TAKING FOR THE FACT THAT SHORTURL MAY BE MORE THAN ONE
-                        // TODO: READ UP MANY-TO-MANY RELATIONSSHIP
                     };
                     newUrl = yield urlSchema_1.Urls.create(newUrlPayload);
                     return res.status(201).json({
@@ -245,8 +243,9 @@ const editCusomUrl = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         if (!currentUrl) {
             throw new appError_1.default('Url not found!', 400);
         }
+        const newUrl = `${req.protocol}://${req.get('host')}/${newCustomUrl}`;
         // CHECK IF THE NEW CUSTOM URL EXISTS
-        const newCustomExists = yield urlSchema_1.Urls.findOne({ shortUrl: newCustomUrl });
+        const newCustomExists = yield urlSchema_1.Urls.findOne({ shortUrl: newUrl });
         if (newCustomExists) {
             throw new appError_1.default('Link not available. Please provide new custom link', 401);
         }
@@ -254,7 +253,7 @@ const editCusomUrl = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         if (!(req.user === currentUrl.userId)) {
             throw new appError_1.default('Unauthorized!', 401);
         }
-        currentUrl.shortUrl = newCustomUrl;
+        currentUrl.shortUrl = newUrl;
         yield currentUrl.save();
         yield redis_1.default.set(newCustomUrl, currentUrl.longUrl);
         res.status(200).json({
@@ -270,4 +269,36 @@ const editCusomUrl = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
     }
 });
 exports.editCusomUrl = editCusomUrl;
+const getUrlAnalytics = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        // GET SHORTURL FROM BODY
+        let { shortUrl } = req.body;
+        shortUrl = `${req.protocol}://${req.get('host')}/${shortUrl}`;
+        // GET URL FROM DB
+        const Url = yield urlSchema_1.Urls.findOne({ shortUrl });
+        // SET TOTALCLICKS TO URL COUNTS
+        let totalClicks;
+        if (Url) {
+            totalClicks = Url.count;
+        }
+        totalClicks = 0;
+        // GET LOCATIONS OF SHORTURL
+        let Location;
+        Location = yield locationSchema_1.Locations.find({ shortUrl });
+        // RETURN LOCATION PLUS TOTAL CLICKS
+        res.status(200).json({
+            status: 'success',
+            data: {
+                totalClicks,
+                Locations: Location
+            }
+        });
+        return;
+    }
+    catch (error) {
+        next(new appError_1.default(error.message, error.statusCode));
+        return;
+    }
+});
+exports.getUrlAnalytics = getUrlAnalytics;
 exports.default = redirection;

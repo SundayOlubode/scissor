@@ -57,7 +57,7 @@ const login = (req, res, next) => __awaiter(void 0, void 0, void 0, function* ()
         if (!user || !(yield user.isValidPassword(password))) {
             throw new appError_1.default('Email or Password incorrect', 401);
         }
-        (0, createSendToken_1.default)(user, 201, res);
+        (0, createSendToken_1.default)(user, 200, res);
     }
     catch (error) {
         next(new appError_1.default(error.message, error.statusCode));

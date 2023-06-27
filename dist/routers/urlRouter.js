@@ -9,4 +9,5 @@ const authorize_1 = __importDefault(require("../middlewares/authorize"));
 const router = (0, express_1.Router)();
 router.post('/create', authorize_1.default, urlController_1.createUrl);
 router.patch('/edit', authorize_1.default, urlController_1.editCusomUrl);
+router.patch('/analytics', authorize_1.default, urlController_1.getUrlAnalytics);
 exports.default = router;

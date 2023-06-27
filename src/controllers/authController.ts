@@ -62,7 +62,7 @@ export const login = async (req: Request, res: Response, next: NextFunction):
             throw new appError('Email or Password incorrect', 401)
         }
 
-        createSendToken(user, 201, res)
+        createSendToken(user, 200, res)
 
     } catch (error: any) {
         next(new appError(error.message, error.statusCode));
