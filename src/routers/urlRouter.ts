@@ -6,6 +6,6 @@ const router: IRouter = Router()
 
 router.post('/create', authorize, createUrl)
 router.patch('/edit', authorize, editCusomUrl)
-router.patch('/analytics', authorize, getUrlAnalytics)
+router.get('/analytics', authorize, getUrlAnalytics)
 
 export default router
