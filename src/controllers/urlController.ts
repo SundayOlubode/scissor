@@ -199,8 +199,7 @@ async function returnCreateResponse(longUrl: string, shortUrl: string, req: Requ
 async function generateQRCode(Url: IUrl):
     Promise<IUrl> {
     try {
-        // let QRPath = `${__dirname}/../QRs/${Url.shortUrl.slice(-7)}.png`
-        let QRPath = `QRs/${Url.shortUrl.slice(-7)}.png`
+        let QRPath = `QRImages/${Url.shortUrl.slice(-7)}.png`
         let QRCodeUpload: UploadApiResponse
         let QRCodeLink: string
 
