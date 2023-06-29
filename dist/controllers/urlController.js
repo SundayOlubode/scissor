@@ -280,7 +280,7 @@ const getUrlAnalytics = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
     try {
         // GET SHORTURL FROM BODY
         let { shortUrl } = req.body;
-        shortUrl = `${req.protocol}://${req.get('host')}/${shortUrl}`;
+        // shortUrl = `${req.protocol}://${req.get('host')}/${shortUrl}`
         // GET URL FROM DB
         const Url = yield urlSchema_1.Urls.findOne({ shortUrl });
         // SET TOTALCLICKS TO URL COUNTS
@@ -297,7 +297,7 @@ const getUrlAnalytics = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             status: 'success',
             data: {
                 totalClicks,
-                Locations: Location
+                locations: Location
             }
         });
         return;

@@ -327,7 +327,7 @@ export const getUrlAnalytics = async (req: Request, res: Response, next: NextFun
 
         // GET SHORTURL FROM BODY
         let { shortUrl } = req.body
-        shortUrl = `${req.protocol}://${req.get('host')}/${shortUrl}`
+        // shortUrl = `${req.protocol}://${req.get('host')}/${shortUrl}`
 
         // GET URL FROM DB
         const Url: IUrl | null = await Urls.findOne({ shortUrl })
@@ -348,7 +348,7 @@ export const getUrlAnalytics = async (req: Request, res: Response, next: NextFun
             status: 'success',
             data: {
                 totalClicks,
-                Locations: Location
+                locations: Location
             }
         })
         return
