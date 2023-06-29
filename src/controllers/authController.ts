@@ -95,9 +95,9 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
             "host"
         )}/api/v1/auth/resetpassword/${resetToken}`;
 
-        // if (process.env.NODE_ENV === 'production') {
+        if (process.env.NODE_ENV === 'production') {
             await new Email(user, resetUrl).sendPasswordReset();
-        // }
+        }
 
         // SEND RESPONSE
         res.status(200).json({
@@ -149,9 +149,9 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
 
         const url = `${req.protocol}://${req.get("host")}/api/v1/auth/login`;
 
-        // if (process.env.NODE_ENV === 'production') {
+        if (process.env.NODE_ENV === 'production') {
             await new Email(user, url).sendVerifiedPSWD();
-        // }
+        }
 
         // LOG IN USER AND SEND JWT
         createSendToken(user, 200, res);
