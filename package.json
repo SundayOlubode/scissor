@@ -7,6 +7,9 @@
     "test": "jest",
     "start": "nodemon server.js"
   },
+  "engines": {
+    "node": ">=14.20.1"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/SundayOlubode/scissor.git"
