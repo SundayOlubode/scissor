@@ -2,13 +2,13 @@
   "name": "scissor",
   "version": "1.0.0",
   "description": "A url-shortner web application",
-  "main": "server.js",
+  "main": "index.js",
   "scripts": {
     "test": "jest",
-    "start": "nodemon server.js"
+    "start": "nodemon ./dist/server.js"
   },
   "engines": {
-    "node": ">=14.20.1"
+    "node": ">=14 <15"
   },
   "repository": {
     "type": "git",
@@ -43,8 +43,6 @@
     "@types/winston": "^2.4.4",
     "jest": "^29.5.0",
     "nodemon": "^2.0.22",
-    "pre-commit": "^1.2.2",
-    "rimraf": "^5.0.1",
     "supertest": "^6.3.3",
     "ts-jest": "^29.1.0",
     "ts-node": "^10.9.1",

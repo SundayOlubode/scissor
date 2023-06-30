@@ -179,7 +179,8 @@ function returnCreateResponse(longUrl, shortUrl, req, res, isCustom = false) {
 function generateQRCode(Url) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            let QRPath = `QRImages/${Url.shortUrl.slice(-7)}.png`;
+            // let QRPath = `${__dirname}/../QRs/${Url.shortUrl.slice(-7)}.png`
+            let QRPath = `QRs/${Url.shortUrl.slice(-7)}.png`;
             let QRCodeUpload;
             let QRCodeLink;
             // GENERATE QR IMAGE
