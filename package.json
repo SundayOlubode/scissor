@@ -2,20 +2,11 @@
   "name": "scissor",
   "version": "1.0.0",
   "description": "A url-shortner web application",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "jest",
-    "start": "nodemon ./dist/server.js",
-    "start:prod": "node ./dist/server.js",
-    "build": "rimraf dist && tsc",
-    "ts.check": "tsc --project tsconfig.json",
-    "add-build": "git add dist"
+    "start": "nodemon server.js"
   },
-  "pre-commit": [
-    "ts.check",
-    "build",
-    "add-build"
-  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/SundayOlubode/scissor.git"
