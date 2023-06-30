@@ -5,10 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "start": "nodemon ./dist/server.js"
-  },
-  "engines": {
-    "node": ">=14 <15"
+    "start": "nodemon ./dist/server.js",
+    "build": "tsc",
+    "vercel-build": "echo Hello"
   },
   "repository": {
     "type": "git",
