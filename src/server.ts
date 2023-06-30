@@ -3,7 +3,7 @@ import dotenv from 'dotenv'
 import logger from './utils/logger'
 import db from './models/db'
 import Cache from './configs/redis'
-// import { event } from './controllers/urlController'
+import { event } from './controllers/urlController'
 import { IUrl, Urls } from './models/urlSchema'
 
 dotenv.config()
@@ -17,18 +17,18 @@ process.on('uncaughtException', (error) => {
 
 })
 
-// event.on('inc-counter', async (shortUrl) => {
+event.on('inc-counter', async (shortUrl) => {
 
-//     const Url: IUrl | null = await Urls.findOne({ shortUrl })
-//     if (Url) {
-//         let { count }: IUrl = Url!
-//         count! += 1
+    const Url: IUrl | null = await Urls.findOne({ shortUrl })
+    if (Url) {
+        let { count }: IUrl = Url!
+        count! += 1
 
-//         Url.count = count
-//         await Url.save()
-//     }
-//     return
-// })
+        Url.count = count
+        await Url.save()
+    }
+    return
+})
 
 const server = app.listen(PORT, () => {
     logger.info(`Server listening on port ${PORT}`);

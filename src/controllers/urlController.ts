@@ -2,7 +2,7 @@ import { Response, Request, NextFunction, RequestHandler } from "express"
 import appError from "../utils/appError"
 import { Urls, IUrl } from "../models/urlSchema"
 import Cache from "../configs/redis"
-// import EventEmitter from 'events'
+import EventEmitter from 'events'
 import convertToBase62 from '../utils/base62'
 import cloudinary from "../configs/cloudinary"
 import QRCode from 'qrcode'
@@ -15,7 +15,7 @@ interface ReqParams {
     shortUrl?: string
 }
 
-// export const event = new EventEmitter()
+export const event = new EventEmitter()
 
 /**
  * Create Short Url
@@ -246,7 +246,7 @@ const redirection = async (req: Request, res: Response, next: NextFunction):
 
         if (urlInCache) {
             setTimeout(() => {
-                // event.emit('inc-counter', shortUrl)
+                event.emit('inc-counter', shortUrl)
             }, 2000)
 
             res.redirect(urlInCache);
