@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "start": "nodemon ./dist/server.js",
-    "build": "tsc",
+    "start": "node ./dist/server.js",
+    "dev": "nodemon ./dist/server.js",
+    "build": "npm install && tsc",
     "vercel-build": "echo Hello"
   },
   "repository": {
