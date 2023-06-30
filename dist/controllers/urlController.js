@@ -12,18 +12,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUrlAnalytics = exports.editCusomUrl = exports.createUrl = exports.event = void 0;
+exports.getUrlAnalytics = exports.editCusomUrl = exports.createUrl = void 0;
 const appError_1 = __importDefault(require("../utils/appError"));
 const urlSchema_1 = require("../models/urlSchema");
 const redis_1 = __importDefault(require("../configs/redis"));
-const events_1 = __importDefault(require("events"));
+// import EventEmitter from 'events'
 const base62_1 = __importDefault(require("../utils/base62"));
 const cloudinary_1 = __importDefault(require("../configs/cloudinary"));
 const qrcode_1 = __importDefault(require("qrcode"));
 const logger_1 = __importDefault(require("../utils/logger"));
 const locationSchema_1 = require("../models/locationSchema");
 const fs_1 = __importDefault(require("fs"));
-exports.event = new events_1.default();
+// export const event = new EventEmitter()
 /**
  * Create Short Url
  * @returns Response
@@ -217,7 +217,7 @@ const redirection = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
         const urlInCache = yield redis_1.default.get(shortUrl);
         if (urlInCache) {
             setTimeout(() => {
-                exports.event.emit('inc-counter', shortUrl);
+                // event.emit('inc-counter', shortUrl)
             }, 2000);
             res.redirect(urlInCache);
             return;
