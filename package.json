@@ -4,11 +4,8 @@
   "description": "A url-shortner web application",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
-    "start": "node ./dist/server.js",
-    "dev": "nodemon ./dist/server.js",
-    "build": "npm install && tsc",
-    "vercel-build": "echo Hello"
+    "start": "nodemon",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
