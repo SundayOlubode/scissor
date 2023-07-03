@@ -175,9 +175,11 @@ export const socialAuth = (req: Request, res: Response, next: NextFunction) => {
 
     // OBTAIN USER DETAILS FROM SESSION
     // @ts-ignore
-    const {
-        user: { user, token, oldUser }
-    } = req.session.passport;  
+    // const {
+    //     user: { user, token, oldUser }
+    // } = req.session.passport;  
+
+    let token;
 
     const cookieOptions: CookieOptions = {
         expires: new Date(Date.now() + 1 * 60 * 60 * 1000),
