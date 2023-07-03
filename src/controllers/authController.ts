@@ -11,6 +11,9 @@ interface IReqBody {
     email: string;
     password?: string;
     username: string;
+    session: {
+        passport: any
+    }
 }
 
 /**
@@ -171,6 +174,7 @@ const redirectURL = 'http://localhost:3000'
 export const socialAuth = (req: Request, res: Response, next: NextFunction) => {
 
     // OBTAIN USER DETAILS FROM SESSION
+    // @ts-ignore
     const {
         user: { user, token, oldUser }
     } = req.session.passport;  

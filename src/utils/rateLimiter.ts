@@ -1,6 +1,10 @@
 import rateLimiter from 'express-rate-limit'
 import { Request, Response } from 'express'
 
+// interface Request {
+//     user?: string | undefined;
+//     ip?: string | undefined
+// }
 
 /**
  * Rate Limiter
@@ -14,9 +18,9 @@ const limiter = rateLimiter({
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
     message: 'Too many requests!',
     skipFailedRequests: true,
-    keyGenerator: (req: Request, res: Response) => { // USER ID OR IP
-        return req.user || req.ip
-    }
+    // keyGenerator: (req: Request, res: Response) => { // USER ID OR IP
+    //     return req.user || req.ip
+    // }
 })
 
 

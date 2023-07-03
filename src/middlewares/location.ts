@@ -5,7 +5,11 @@ import dotenv from 'dotenv'
 dotenv.config()
 import appError from '../utils/appError';
 
-const getLocation = async (req: Request, res: Response, next: NextFunction) => {
+interface IReq extends Request{
+    location?: string
+}
+
+const getLocation = async (req: IReq, res: Response, next: NextFunction) => {
 
     if (process.env.NODE_ENV === 'production') {
 

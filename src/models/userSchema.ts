@@ -1,7 +1,5 @@
 import { Document, Schema, model } from 'mongoose';
-import HookNextFunction from 'mongoose'
 import bcrypt from 'bcrypt'
-import { NextFunction } from 'express';
 import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
 dotenv.config()
