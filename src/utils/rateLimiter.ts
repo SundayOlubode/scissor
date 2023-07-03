@@ -6,6 +6,7 @@ import { Request } from 'express'
  * Rate Limiter
  * Limits each User(or IP) to 30 requests per 2 mins
  */
+// @ts-ignore
 const limiter = rateLimiter({
     windowMs: 2 * 60 * 1000, // 2 minutes
     max: 30, // Limit each User OR IP to 30 requests per `window` (here, per 2 minutes)

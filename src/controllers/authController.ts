@@ -167,12 +167,13 @@ const redirectURL = 'http://localhost:3000'
 /**
  * Social Auth Controller
  */
+// @ts-ignore
 export const socialAuth = (req: Request, res: Response, next: NextFunction) => {
 
     // OBTAIN USER DETAILS FROM SESSION
     const {
         user: { user, token, oldUser }
-    } = req.session.passport;    
+    } = req.session.passport;  
 
     const cookieOptions: CookieOptions = {
         expires: new Date(Date.now() + 1 * 60 * 60 * 1000),
