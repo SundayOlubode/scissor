@@ -167,7 +167,7 @@ const redirectURL = 'http://localhost:3000'
 /**
  * Social Auth Controller
  */
-// @ts-ignore
+// @ts-nocheck
 export const socialAuth = (req: Request, res: Response, next: NextFunction) => {
 
     // OBTAIN USER DETAILS FROM SESSION
