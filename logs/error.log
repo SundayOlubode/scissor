@@ -1,0 +1,24 @@
+2023-07-04 08:59:39:5939 [31merror[39m: [31muncaughtException: Cannot init client. Please provide correct options[39m
+[31mError: Cannot init client. Please provide correct options[39m
+[31m    at new MongoStore (C:\Users\user\Documents\Projects\scissor\node_modules\connect-mongo\src\lib\MongoStore.ts:196:13)[39m
+[31m    at Function.create (C:\Users\user\Documents\Projects\scissor\node_modules\connect-mongo\src\lib\MongoStore.ts:214:12)[39m
+[31m    at Object.<anonymous> (C:\Users\user\Documents\Projects\scissor\src\app.ts:30:27)[39m
+[31m    at Module._compile (node:internal/modules/cjs/loader:1103:14)[39m
+[31m    at Module.m._compile (C:\Users\user\Documents\Projects\scissor\node_modules\ts-node\src\index.ts:1618:23)[39m
+[31m    at Module._extensions..js (node:internal/modules/cjs/loader:1157:10)[39m
+[31m    at Object.require.extensions.<computed> [as .ts] (C:\Users\user\Documents\Projects\scissor\node_modules\ts-node\src\index.ts:1621:12)[39m
+[31m    at Module.load (node:internal/modules/cjs/loader:981:32)[39m
+[31m    at Function.Module._load (node:internal/modules/cjs/loader:822:12)[39m
+[31m    at Module.require (node:internal/modules/cjs/loader:1005:19)[39m
+2023-07-04 09:00:03:03 [31merror[39m: [31muncaughtException: Cannot init client. Please provide correct options[39m
+[31mError: Cannot init client. Please provide correct options[39m
+[31m    at new MongoStore (C:\Users\user\Documents\Projects\scissor\node_modules\connect-mongo\src\lib\MongoStore.ts:196:13)[39m
+[31m    at Function.create (C:\Users\user\Documents\Projects\scissor\node_modules\connect-mongo\src\lib\MongoStore.ts:214:12)[39m
+[31m    at Object.<anonymous> (C:\Users\user\Documents\Projects\scissor\src\app.ts:25:27)[39m
+[31m    at Module._compile (node:internal/modules/cjs/loader:1103:14)[39m
+[31m    at Module.m._compile (C:\Users\user\Documents\Projects\scissor\node_modules\ts-node\src\index.ts:1618:23)[39m
+[31m    at Module._extensions..js (node:internal/modules/cjs/loader:1157:10)[39m
+[31m    at Object.require.extensions.<computed> [as .ts] (C:\Users\user\Documents\Projects\scissor\node_modules\ts-node\src\index.ts:1621:12)[39m
+[31m    at Module.load (node:internal/modules/cjs/loader:981:32)[39m
+[31m    at Function.Module._load (node:internal/modules/cjs/loader:822:12)[39m
+[31m    at Module.require (node:internal/modules/cjs/loader:1005:19)[39m

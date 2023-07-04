@@ -27,6 +27,7 @@ event.on('inc-counter', async (shortUrl) => {
         Url.count = count
         await Url.save()
     }
+    
     return
 })
 

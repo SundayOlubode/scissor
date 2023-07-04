@@ -8,15 +8,10 @@ import authRouter from './routers/authRouter'
 import redirection from './controllers/urlController'
 import getLocation from './middlewares/location'
 import userRouter from './routers/userRouter'
+import MongoStore from 'connect-mongo'
 require('./configs/OAuth')
 
 const app: Application = express()
-
-interface ISession {
-    secret: string
-    resave: boolean
-    saveUninitialized: boolean
-}
 
 import session from 'express-session'
 
@@ -25,21 +20,24 @@ app.use(
     session({
         secret: process.env.SESSION_SECRET!,
         resave: false,
-        saveUninitialized: false
+        saveUninitialized: false,
+        store: MongoStore.create({
+            mongoUrl: process.env.DEV_DB_URL! || process.env.PROD_DB_URL!,
+            collectionName: 'sessions'
+        })
     })
 )
+
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 
 app.use(httpLogger)
 app.use(rateLimiter)
 
-
-
 app.get('/', (req, res, next) => {
     return res.status(200).json({
-        message: 'Success',
-        data: 'Welcome!!!'
+        status: 'Success',
+        message: 'Welcome!!!'
     })
 })
 
