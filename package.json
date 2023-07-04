@@ -4,7 +4,8 @@
   "description": "A url-shortner web application",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon",
+    "start": "ts-node ./src/server.ts",
+    "dev": "nodemon",
     "test": "jest"
   },
   "repository": {
