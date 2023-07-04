@@ -1,4 +1,4 @@
-import winston = require("winston");
+import winston from "winston";
 
 const levels = {
     error: 0,
